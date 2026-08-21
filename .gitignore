@@ -27,3 +27,5 @@ controller-app/.expo/
 
 # Misc
 *.log
+# Unity temporary build artifacts
+unity-vr/.utmp/

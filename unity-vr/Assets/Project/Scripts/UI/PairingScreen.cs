@@ -1,9 +1,11 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VisionSimulation.Networking;
 using VisionSimulation.Pairing;
+using VisionSimulation.VR;
 
 namespace VisionSimulation.UI
 {
@@ -36,6 +38,7 @@ namespace VisionSimulation.UI
 
         private Texture2D qrTexture;
         private bool navigatedToGarden;
+        private bool xrStartupFailed;
 
         private void Start()
         {
@@ -91,6 +94,7 @@ namespace VisionSimulation.UI
             detailText = SimpleUi.CreateText(column, string.Empty, 26, SimpleUi.TextMuted);
 
             relayUrlField = SimpleUi.CreateInputField(column, string.Empty);
+            relayUrlField.gameObject.SetActive(false);
             relayUrlField.onEndEdit.AddListener(OnRelayUrlChanged);
 
             primaryButton = SimpleUi.CreateButton(column, string.Empty, SimpleUi.Primary, Color.black);
@@ -117,8 +121,9 @@ namespace VisionSimulation.UI
             // The code is spent and the token is already cleared; make sure it
             // is not left on screen behind the transition.
             HideQrCode();
+            xrStartupFailed = false;
             Refresh();
-            LoadGarden();
+            StartCoroutine(StartVrAndLoadGarden());
         }
 
         private void OnSessionEnded()
@@ -140,7 +145,11 @@ namespace VisionSimulation.UI
             if (string.IsNullOrEmpty(session.SessionId) || string.IsNullOrEmpty(session.PairingToken))
                 return;
 
-            string payload = PairingPayload.ToJson(session.SessionId, session.PairingToken, session.ExpiresAt);
+            string payload = PairingPayload.ToJson(
+                session.SessionId,
+                session.PairingToken,
+                session.ExpiresAt,
+                session.RelayUrl);
 
             try
             {
@@ -185,6 +194,10 @@ namespace VisionSimulation.UI
         {
             switch (session.State)
             {
+                case RelaySessionState.Paired when xrStartupFailed:
+                    StartCoroutine(StartVrAndLoadGarden());
+                    return;
+
                 case RelaySessionState.PairPending:
                     session.RespondToPairRequest(accepted: true);
                     Refresh();
@@ -227,13 +240,16 @@ namespace VisionSimulation.UI
         {
             bool editingAllowed = session.State != RelaySessionState.Paired;
             relayUrlField.interactable = editingAllowed;
-            relayUrlField.gameObject.SetActive(editingAllowed);
+            // Discovery normally supplies this automatically. Keep the field
+            // hidden during normal operation; failure details still show the
+            // discovered/fallback address for troubleshooting.
+            relayUrlField.gameObject.SetActive(false);
 
             switch (session.State)
             {
                 case RelaySessionState.Idle:
                 case RelaySessionState.Connecting:
-                    statusText.text = "Connecting to relay...";
+                    statusText.text = "Finding relay...";
                     statusText.color = SimpleUi.Primary;
                     detailText.text = session.RelayUrl;
                     SetButtons(null, "Cancel");
@@ -254,6 +270,15 @@ namespace VisionSimulation.UI
                     return;
 
                 case RelaySessionState.Paired:
+                    if (xrStartupFailed)
+                    {
+                        statusText.text = "Could not start VR";
+                        statusText.color = SimpleUi.Danger;
+                        detailText.text = "Cardboard VR could not initialize. Check the headset setup, then try again.";
+                        SetButtons("Try VR again", null);
+                        return;
+                    }
+
                     statusText.text = "Paired";
                     statusText.color = SimpleUi.Primary;
                     detailText.text = "Starting the simulation...";
@@ -344,6 +369,22 @@ namespace VisionSimulation.UI
 
             navigatedToGarden = true;
             SceneManager.LoadScene(gardenSceneName);
+        }
+
+        private IEnumerator StartVrAndLoadGarden()
+        {
+            xrStartupFailed = false;
+            statusText.text = "Starting VR...";
+            bool started = false;
+            yield return VrModeLifecycle.StartForSimulation(success => started = success);
+            if (!started)
+            {
+                xrStartupFailed = true;
+                Refresh();
+                yield break;
+            }
+
+            LoadGarden();
         }
     }
 }

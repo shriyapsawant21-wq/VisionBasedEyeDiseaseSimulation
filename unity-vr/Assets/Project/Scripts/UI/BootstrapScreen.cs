@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VisionSimulation.Networking;
+using VisionSimulation.VR;
 
 namespace VisionSimulation.UI
 {
@@ -34,6 +35,9 @@ namespace VisionSimulation.UI
 
         private void Start()
         {
+            // Pairing must be a normal full-screen phone UI so its QR is
+            // scannable. Cardboard starts only after pairing succeeds.
+            VrModeLifecycle.StopForSetup();
             EnsureRelaySession();
             BuildUi();
         }
