@@ -36,7 +36,15 @@ export interface RelayOptions {
 export interface Relay {
   /** Resolves with the actual bound port (useful when port 0 was requested). */
   listen(): Promise<number>;
+  /** Immediate teardown. Sockets are terminated without notice. */
   close(): Promise<void>;
+  /**
+   * Graceful stop. Tells every connected client the session is over before
+   * closing, so Unity resets to normal vision instead of just watching the
+   * socket vanish. Rooms live in this process, so a restart always means
+   * both devices must re-pair -- this only makes that legible to them.
+   */
+  shutdown(graceMs?: number): Promise<void>;
   readonly rooms: RoomRegistry;
   readonly httpServer: Server;
 }
@@ -323,6 +331,17 @@ export function createRelay(options: RelayOptions = {}): Relay {
   heartbeat.unref?.();
   sweep.unref?.();
 
+  function hardClose(): Promise<void> {
+    clearInterval(heartbeat);
+    clearInterval(sweep);
+    for (const socket of wss.clients) socket.terminate();
+    return new Promise<void>((resolve) => {
+      wss.close(() => httpServer.close(() => resolve()));
+    });
+  }
+
+  const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
   return {
     rooms,
     httpServer,
@@ -340,13 +359,26 @@ export function createRelay(options: RelayOptions = {}): Relay {
         });
       });
     },
-    close() {
-      clearInterval(heartbeat);
-      clearInterval(sweep);
-      for (const socket of wss.clients) socket.terminate();
-      return new Promise<void>((resolve) => {
-        wss.close(() => httpServer.close(() => resolve()));
-      });
+    close: hardClose,
+    async shutdown(graceMs = 250) {
+      let notified = 0;
+      for (const socket of wss.clients) {
+        if (socket.readyState === WebSocket.OPEN) {
+          send(socket, { type: "END_SESSION", seq: 0, payload: {} });
+          notified += 1;
+        }
+      }
+      log("relay_shutting_down", { clients: notified });
+
+      if (notified > 0) {
+        await wait(graceMs); // let the END_SESSION frames flush
+        for (const socket of wss.clients) {
+          // 1001 "going away" tells clients this was a restart, not a fault
+          if (socket.readyState === WebSocket.OPEN) socket.close(1001, "server shutting down");
+        }
+        await wait(50);
+      }
+      await hardClose();
     },
   };
 }

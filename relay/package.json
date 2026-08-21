@@ -12,7 +12,9 @@
     "test": "vitest run",
     "lint": "eslint src tests scripts",
     "typecheck": "tsc --noEmit",
-    "schema:generate": "tsx scripts/generateSchema.ts"
+    "schema:generate": "tsx scripts/generateSchema.ts",
+    "schema:check": "tsx scripts/generateSchema.ts --check",
+    "endpoint": "tsx scripts/endpoint.ts"
   },
   "dependencies": {
     "ws": "^8.18.0",
