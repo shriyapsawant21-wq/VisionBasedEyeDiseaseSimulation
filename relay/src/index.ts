@@ -3,6 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import {
   CONTROLLER_ONLY_TYPES,
   SIMULATION_ONLY_TYPES,
+  EITHER_ROLE_TYPES,
   PROTOCOL_VERSION,
   type ClientMessage,
 } from "./protocol";
@@ -94,6 +95,7 @@ wss.on("connection", (socket) => {
   socket.on("close", () => {
     const meta = socketMeta.get(socket);
     log("connection_close", { role: meta?.role, sessionId: meta?.sessionId });
+    rateLimiter.forget(socket);
 
     if (!meta?.sessionId) return;
     const room = rooms.get(meta.sessionId);
@@ -145,6 +147,10 @@ function handleMessage(socket: WebSocket, meta: SocketMeta, message: ClientMessa
       }
       if (room.paired) {
         sendError(socket, "session_already_paired", "a controller is already connected", message.seq);
+        return;
+      }
+      if (room.pendingControllerSocket && room.pendingControllerSocket !== socket) {
+        sendError(socket, "pairing_in_progress", "another device is already awaiting confirmation", message.seq);
         return;
       }
       if (room.pairingToken !== message.payload.pairingToken) {
@@ -205,6 +211,12 @@ function handleMessage(socket: WebSocket, meta: SocketMeta, message: ClientMessa
       const room = rooms.get(meta.sessionId);
       if (!room || !room.paired) {
         sendError(socket, "not_paired", "session is not paired yet", message.seq);
+        return;
+      }
+
+      if (EITHER_ROLE_TYPES.has(message.type)) {
+        // heartbeat-style message: keeps the room alive, never forwarded to the peer
+        rooms.touch(room);
         return;
       }
 

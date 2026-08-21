@@ -204,4 +204,7 @@ export const SIMULATION_ONLY_TYPES = new Set([
   "STATE_UPDATED",
 ]);
 
+/** Heartbeat: allowed from either paired role, never forwarded to the peer. */
+export const EITHER_ROLE_TYPES = new Set(["PING"]);
+
 export const MAX_MESSAGE_BYTES = 8 * 1024;
