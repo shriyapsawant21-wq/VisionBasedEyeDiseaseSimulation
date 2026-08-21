@@ -377,6 +377,17 @@ namespace VisionSimulation.UI
             statusText.text = "Starting VR...";
             bool started = false;
             yield return VrModeLifecycle.StartForSimulation(success => started = success);
+
+            // XR initialization yields across frames. The controller can
+            // disconnect (or the relay can fail) while it is in progress, so
+            // only enter the simulation if the session is still authoritative.
+            if (session == null || session.State != RelaySessionState.Paired)
+            {
+                if (started)
+                    VrModeLifecycle.StopForSetup();
+                yield break;
+            }
+
             if (!started)
             {
                 xrStartupFailed = true;
