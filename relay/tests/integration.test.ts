@@ -616,3 +616,23 @@ describe("connection hygiene", () => {
     expect(paired.payload.sessionId).toBe(sessionId);
   });
 });
+
+describe("graceful shutdown", () => {
+  it("tells both devices the session ended before the process goes away", async () => {
+    harness = await startHarness();
+    const { sim, controller } = await pairedPair(harness);
+
+    await harness.relay.shutdown(50);
+
+    expect(sim.received.some((m) => m.type === "END_SESSION")).toBe(true);
+    expect(controller.received.some((m) => m.type === "END_SESSION")).toBe(true);
+    // 1001 "going away" distinguishes a restart from a crash
+    expect(sim.closedWith?.code).toBe(1001);
+    expect(controller.closedWith?.code).toBe(1001);
+  });
+
+  it("shuts down cleanly with nobody connected", async () => {
+    harness = await startHarness();
+    await expect(harness.relay.shutdown(10)).resolves.toBeUndefined();
+  });
+});

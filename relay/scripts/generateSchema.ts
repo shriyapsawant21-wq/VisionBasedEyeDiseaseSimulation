@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, resolve } from "path";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
@@ -13,6 +13,11 @@ import {
  * Emits shared/protocol/protocol.schema.json from protocol.ts.
  * protocol.ts stays the single source of truth -- never hand-edit the JSON.
  * Run `npm run schema:generate` after any protocol change.
+ *
+ * With --check it writes nothing and exits non-zero when the committed schema
+ * is stale. CI runs it that way, so a protocol edit cannot land without the
+ * schema -- and therefore the controller and Unity clients -- being updated
+ * alongside it.
  */
 
 const OUT = resolve(__dirname, "../../shared/protocol/protocol.schema.json");
@@ -37,6 +42,22 @@ const schema = {
   ],
 };
 
-mkdirSync(dirname(OUT), { recursive: true });
-writeFileSync(OUT, JSON.stringify(schema, null, 2) + "\n");
-console.log(`wrote ${OUT}`);
+const serialized = JSON.stringify(schema, null, 2) + "\n";
+
+if (process.argv.includes("--check")) {
+  if (!existsSync(OUT)) {
+    console.error(`missing ${OUT} -- run: npm run schema:generate`);
+    process.exit(1);
+  }
+  if (readFileSync(OUT, "utf8") !== serialized) {
+    console.error(
+      `${OUT} is out of date with src/protocol.ts -- run: npm run schema:generate, then commit the result`,
+    );
+    process.exit(1);
+  }
+  console.log("schema is up to date");
+} else {
+  mkdirSync(dirname(OUT), { recursive: true });
+  writeFileSync(OUT, serialized);
+  console.log(`wrote ${OUT}`);
+}
