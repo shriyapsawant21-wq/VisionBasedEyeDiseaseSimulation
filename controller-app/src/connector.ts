@@ -1,9 +1,11 @@
-import WebSocket from "ws";
 import {
   PROTOCOL_VERSION,
   type Disease,
   type Comparison,
 } from "../../relay/src/protocol";
+
+// Uses the ambient WebSocket global (React Native and browsers both provide
+// one with the same WHATWG API) instead of the Node-only "ws" package.
 
 export interface ControllerState {
   disease: Disease;
@@ -39,22 +41,23 @@ export class RelayConnector {
   connect(): void {
     this.socket = new WebSocket(this.relayUrl);
 
-    this.socket.on("open", () => {
+    this.socket.onopen = () => {
       this.events.onOpen?.();
       this.send("HELLO", { role: "CONTROLLER" });
-    });
+    };
 
-    this.socket.on("message", (data) => {
-      this.handleMessage(JSON.parse(data.toString()));
-    });
+    this.socket.onmessage = (event: MessageEvent) => {
+      this.handleMessage(JSON.parse(String(event.data)));
+    };
 
-    this.socket.on("close", (code, reason) => {
-      this.events.onClose?.(code, reason.toString());
-    });
+    this.socket.onclose = (event: CloseEvent) => {
+      this.events.onClose?.(event.code, event.reason);
+    };
 
-    this.socket.on("error", (err) => {
-      this.events.onSocketError?.(err as Error);
-    });
+    this.socket.onerror = (event: Event) => {
+      const message = "message" in event ? String((event as { message: unknown }).message) : "WebSocket error";
+      this.events.onSocketError?.(new Error(message));
+    };
   }
 
   pairRequest(sessionId: string, pairingToken: string): void {
