@@ -7,7 +7,6 @@ Shader "VisionSimulation/CentralBlur"
         _MaskRadius("Mask Radius", Range(0.01, 1)) = 0.35
         _FeatherWidth("Feather Width", Range(0.001, 0.5)) = 0.18
         _BlurPixels("Blur Pixels", Range(0, 20)) = 0
-        _CentralContrast("Central Contrast", Range(0, 1)) = 1
         _CenterOffset("Center Offset", Vector) = (0, 0, 0, 0)
     }
 
@@ -34,7 +33,6 @@ Shader "VisionSimulation/CentralBlur"
             float _MaskRadius;
             float _FeatherWidth;
             float _BlurPixels;
-            float _CentralContrast;
             float2 _CenterOffset;
 
             half4 SampleSource(float2 uv)
@@ -70,7 +68,8 @@ Shader "VisionSimulation/CentralBlur"
                 blurred += SampleSource(uv + float2( radius.x, -radius.y)) * 0.10h;
                 blurred += SampleSource(uv + float2(-radius.x, -radius.y)) * 0.10h;
 
-                blurred.rgb = (blurred.rgb - 0.5h) * _CentralContrast + 0.5h;
+                // Preserve the scene's original colours. The blur is only a blend
+                // of scene samples, with no white/grey overlay or contrast lift.
                 return lerp(source, blurred, centralMask);
             }
             ENDHLSL

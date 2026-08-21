@@ -15,8 +15,28 @@ MonoBehaviour:
   m_Active: 1
   injectionPoint: 550
   fetchColorBuffer: 1
-  requirements: 0
+  requirements: 4
   passMaterial: {fileID: 2100000, guid: 01384707d6e1fa742b2f3271266b67db, type: 2}
+  passIndex: 0
+  bindDepthStencilAttachment: 0
+  m_Version: 1
+--- !u!114 &-2191180808883250945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b00045f12942b46c698459096c89274e, type: 3}
+  m_Name: Floaters Pass
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::FullScreenPassRendererFeature_OldGUID
+  m_Active: 1
+  injectionPoint: 550
+  fetchColorBuffer: 1
+  requirements: 4
+  passMaterial: {fileID: 2100000, guid: 934f3074ca0b45b088b19805f3a6bc84, type: 2}
   passIndex: 0
   bindDepthStencilAttachment: 0
   m_Version: 1
@@ -48,6 +68,7 @@ MonoBehaviour:
   - {fileID: 4308067615543457612}
   - {fileID: 6888689492604668478}
   - {fileID: -3191180808883250945}
+  - {fileID: -2191180808883250945}
   m_RendererFeatureMap: 4cf7d4d4ab54c93b3ecaaa7e988a995fff587840f6a5b6d3
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
