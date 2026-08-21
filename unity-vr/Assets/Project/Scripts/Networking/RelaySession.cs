@@ -151,7 +151,9 @@ namespace VisionSimulation.Networking
             helloSent = false;
 
             State = RelaySessionState.Connecting;
-            discoveryTask = RelayDiscovery.FindAsync();
+            // Discovery may update the port, but it must never replace the
+            // configured relay host with an unauthenticated UDP sender.
+            discoveryTask = RelayDiscovery.FindAsync(relayUrl);
         }
 
         /// <summary>Persists the endpoint so the next launch reuses it.</summary>

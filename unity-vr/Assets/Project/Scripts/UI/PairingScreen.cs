@@ -38,6 +38,7 @@ namespace VisionSimulation.UI
 
         private Texture2D qrTexture;
         private bool navigatedToGarden;
+        private bool xrStartupFailed;
 
         private void Start()
         {
@@ -120,6 +121,7 @@ namespace VisionSimulation.UI
             // The code is spent and the token is already cleared; make sure it
             // is not left on screen behind the transition.
             HideQrCode();
+            xrStartupFailed = false;
             Refresh();
             StartCoroutine(StartVrAndLoadGarden());
         }
@@ -192,6 +194,10 @@ namespace VisionSimulation.UI
         {
             switch (session.State)
             {
+                case RelaySessionState.Paired when xrStartupFailed:
+                    StartCoroutine(StartVrAndLoadGarden());
+                    return;
+
                 case RelaySessionState.PairPending:
                     session.RespondToPairRequest(accepted: true);
                     Refresh();
@@ -264,6 +270,15 @@ namespace VisionSimulation.UI
                     return;
 
                 case RelaySessionState.Paired:
+                    if (xrStartupFailed)
+                    {
+                        statusText.text = "Could not start VR";
+                        statusText.color = SimpleUi.Danger;
+                        detailText.text = "Cardboard VR could not initialize. Check the headset setup, then try again.";
+                        SetButtons("Try VR again", null);
+                        return;
+                    }
+
                     statusText.text = "Paired";
                     statusText.color = SimpleUi.Primary;
                     detailText.text = "Starting the simulation...";
@@ -358,8 +373,17 @@ namespace VisionSimulation.UI
 
         private IEnumerator StartVrAndLoadGarden()
         {
+            xrStartupFailed = false;
             statusText.text = "Starting VR...";
-            yield return VrModeLifecycle.StartForSimulation();
+            bool started = false;
+            yield return VrModeLifecycle.StartForSimulation(success => started = success);
+            if (!started)
+            {
+                xrStartupFailed = true;
+                Refresh();
+                yield break;
+            }
+
             LoadGarden();
         }
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.XR.Management;
@@ -23,12 +24,13 @@ namespace VisionSimulation.VR
                 Camera.main.ResetAspect();
         }
 
-        public static IEnumerator StartForSimulation()
+        public static IEnumerator StartForSimulation(Action<bool> completed)
         {
             var manager = XRGeneralSettings.Instance?.Manager;
             if (manager == null)
             {
                 Debug.LogError("[VrModeLifecycle] XR Manager is unavailable.");
+                completed?.Invoke(false);
                 yield break;
             }
 
@@ -38,10 +40,12 @@ namespace VisionSimulation.VR
             if (manager.activeLoader == null)
             {
                 Debug.LogError("[VrModeLifecycle] Cardboard XR failed to initialize.");
+                completed?.Invoke(false);
                 yield break;
             }
 
             manager.StartSubsystems();
+            completed?.Invoke(true);
         }
     }
 }
