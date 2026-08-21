@@ -71,31 +71,46 @@ export function PairingScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.headerButton}>Back</Text>
+        <Pressable style={styles.backBox} onPress={() => navigation.goBack()} hitSlop={12}>
+          <Text style={styles.backArrow}>←</Text>
         </Pressable>
         <Text style={styles.headerTitle}>Pairing</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: 44 }} />
       </View>
 
-      <View style={styles.scannerFrame}>
-        {permission?.granted ? (
-          <CameraView
-            style={StyleSheet.absoluteFill}
-            barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-            onBarcodeScanned={scanned ? undefined : ({ data }) => handleScanned(data)}
-          />
-        ) : (
-          <View style={styles.permissionPrompt}>
-            <Text style={styles.permissionText}>Camera access is needed to scan the pairing code.</Text>
-            <Pressable style={styles.permissionButton} onPress={requestPermission}>
-              <Text style={styles.permissionButtonText}>Grant camera access</Text>
-            </Pressable>
-          </View>
-        )}
+      <View style={styles.scannerPanel}>
         <View style={styles.statusRow}>
           <Text style={styles.statusChip}>Scanner Active</Text>
-          <Text style={styles.statusChip}>Optical Sensor Ready</Text>
+          <View style={styles.sensorChip}>
+            <View style={styles.sensorDot} />
+            <Text style={styles.sensorChipText}>Optical Sensor Ready</Text>
+          </View>
+        </View>
+
+        <View style={styles.viewfinder}>
+          {permission?.granted ? (
+            <CameraView
+              style={StyleSheet.absoluteFill}
+              barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+              onBarcodeScanned={scanned ? undefined : ({ data }) => handleScanned(data)}
+            />
+          ) : (
+            <View style={styles.permissionPrompt}>
+              <Text style={styles.permissionText}>Camera access is needed to scan the pairing code.</Text>
+              <Pressable style={styles.permissionButton} onPress={requestPermission}>
+                <Text style={styles.permissionButtonText}>Grant camera access</Text>
+              </Pressable>
+            </View>
+          )}
+
+          <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+            <View style={[styles.bracket, styles.bracketTopLeft]} />
+            <View style={[styles.bracket, styles.bracketTopRight]} />
+            <View style={[styles.bracket, styles.bracketBottomLeft]} />
+            <View style={[styles.bracket, styles.bracketBottomRight]} />
+            <View style={styles.scanLine} />
+            <View style={styles.reticle} />
+          </View>
         </View>
       </View>
 
@@ -165,33 +180,135 @@ export function PairingScreen({ navigation }: Props) {
   );
 }
 
+const BRACKET = 26;
+const BRACKET_WEIGHT = 2;
+const BRACKET_INSET = 14;
+
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.charcoal,
+    backgroundColor: colors.offWhiteDeep,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.md,
+    paddingTop: spacing.xxl,
+    paddingBottom: spacing.lg,
   },
-  headerButton: {
-    ...type.button,
-    color: colors.sand,
+  backBox: {
+    width: 44,
+    height: 44,
+    borderWidth: 1,
+    borderColor: colors.charcoal,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backArrow: {
+    fontSize: 20,
+    color: colors.charcoal,
   },
   headerTitle: {
-    ...type.value,
-    color: colors.textOnDark,
+    ...type.sectionLabel,
+    fontSize: 15,
+    letterSpacing: 3,
+    textTransform: "uppercase",
+    color: colors.deepRed,
   },
-  scannerFrame: {
-    height: 320,
+  scannerPanel: {
     marginHorizontal: spacing.lg,
-    backgroundColor: colors.charcoalLight,
+    backgroundColor: colors.deepRed,
+    padding: spacing.md,
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.md,
+  },
+  statusChip: {
+    ...type.sectionLabel,
+    fontSize: 10,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    color: colors.sand,
+  },
+  sensorChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.charcoal,
+    paddingVertical: 4,
+    paddingHorizontal: spacing.sm,
+  },
+  sensorDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.teal,
+  },
+  sensorChipText: {
+    ...type.sectionLabel,
+    fontSize: 10,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    color: colors.offWhite,
+  },
+  viewfinder: {
+    height: 240,
+    backgroundColor: colors.charcoal,
     overflow: "hidden",
-    justifyContent: "flex-end",
+  },
+  bracket: {
+    position: "absolute",
+    width: BRACKET,
+    height: BRACKET,
+    borderColor: colors.offWhite,
+  },
+  bracketTopLeft: {
+    top: BRACKET_INSET,
+    left: BRACKET_INSET,
+    borderTopWidth: BRACKET_WEIGHT,
+    borderLeftWidth: BRACKET_WEIGHT,
+  },
+  bracketTopRight: {
+    top: BRACKET_INSET,
+    right: BRACKET_INSET,
+    borderTopWidth: BRACKET_WEIGHT,
+    borderRightWidth: BRACKET_WEIGHT,
+  },
+  bracketBottomLeft: {
+    bottom: BRACKET_INSET,
+    left: BRACKET_INSET,
+    borderBottomWidth: BRACKET_WEIGHT,
+    borderLeftWidth: BRACKET_WEIGHT,
+  },
+  bracketBottomRight: {
+    bottom: BRACKET_INSET,
+    right: BRACKET_INSET,
+    borderBottomWidth: BRACKET_WEIGHT,
+    borderRightWidth: BRACKET_WEIGHT,
+  },
+  scanLine: {
+    position: "absolute",
+    left: BRACKET_INSET,
+    right: BRACKET_INSET,
+    top: "50%",
+    height: 1,
+    backgroundColor: colors.offWhite,
+  },
+  reticle: {
+    position: "absolute",
+    alignSelf: "center",
+    top: "50%",
+    marginTop: -28,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: colors.sand,
   },
   permissionPrompt: {
     flex: 1,
@@ -202,7 +319,7 @@ const styles = StyleSheet.create({
   },
   permissionText: {
     ...type.body,
-    color: colors.textOnDark,
+    color: colors.offWhite,
     textAlign: "center",
   },
   permissionButton: {
@@ -214,44 +331,36 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.white,
   },
-  statusRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: spacing.sm,
-  },
-  statusChip: {
-    ...type.sectionLabel,
-    fontSize: 11,
-    color: colors.sand,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    paddingVertical: 4,
-    paddingHorizontal: spacing.sm,
-  },
   connectionSection: {
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
     marginHorizontal: spacing.lg,
     padding: spacing.lg,
-    backgroundColor: colors.teal,
+    backgroundColor: colors.charcoal,
   },
   sessionLabel: {
     ...type.sectionLabel,
-    color: colors.sand,
+    fontSize: 10,
+    letterSpacing: 1.5,
     textTransform: "uppercase",
+    color: colors.sand,
   },
   sessionValue: {
     ...type.title,
-    color: colors.textOnDark,
+    color: colors.offWhite,
     marginTop: spacing.xs,
   },
   waitingLabel: {
-    ...type.body,
-    color: colors.textOnDark,
+    ...type.sectionLabel,
+    fontSize: 11,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    color: colors.sand,
     marginTop: spacing.sm,
   },
   errorText: {
     marginTop: spacing.sm,
     marginHorizontal: spacing.lg,
-    color: colors.coral,
+    color: colors.deepRed,
   },
   manualSection: {
     marginTop: spacing.lg,
@@ -260,8 +369,10 @@ const styles = StyleSheet.create({
   },
   manualLabel: {
     ...type.sectionLabel,
-    color: colors.sand,
+    fontSize: 11,
+    letterSpacing: 1.5,
     textTransform: "uppercase",
+    color: colors.textMuted,
   },
   manualRow: {
     flexDirection: "row",
@@ -270,18 +381,20 @@ const styles = StyleSheet.create({
   manualInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: colors.sand,
-    color: colors.textOnDark,
-    padding: spacing.sm,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    color: colors.charcoal,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
   connectButton: {
-    backgroundColor: colors.coral,
+    backgroundColor: colors.deepRed,
     paddingHorizontal: spacing.lg,
     justifyContent: "center",
   },
   connectButtonText: {
     ...type.button,
-    color: colors.white,
+    color: colors.offWhite,
   },
   disabled: {
     opacity: 0.4,
