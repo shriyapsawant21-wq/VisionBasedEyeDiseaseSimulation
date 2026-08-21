@@ -11,6 +11,7 @@ export const DiseaseEnum = z.enum([
   "METAMORPHOPSIA",
   "CENTRAL_BLUR",
   "TUNNEL_VISION",
+  "RETINAL_DETACHMENT",
 ]);
 
 export const ComparisonEnum = z.enum(["NORMAL", "AFFECTED"]);
