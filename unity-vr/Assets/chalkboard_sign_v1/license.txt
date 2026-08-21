@@ -1,0 +1,11 @@
+Model Information:
+* title:	Chalkboard_sign_V1
+* source:	https://sketchfab.com/3d-models/chalkboard-sign-v1-d989e2cf9a0744cb8bcb90c2560bb409
+* author:	clon6767 (https://sketchfab.com/clon6767)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Chalkboard_sign_V1" (https://sketchfab.com/3d-models/chalkboard-sign-v1-d989e2cf9a0744cb8bcb90c2560bb409) by clon6767 (https://sketchfab.com/clon6767) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
