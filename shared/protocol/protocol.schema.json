@@ -159,7 +159,8 @@
                   "enum": [
                     "METAMORPHOPSIA",
                     "CENTRAL_BLUR",
-                    "TUNNEL_VISION"
+                    "TUNNEL_VISION",
+                    "RETINAL_DETACHMENT"
                   ]
                 }
               },
