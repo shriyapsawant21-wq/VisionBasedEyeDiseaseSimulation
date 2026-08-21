@@ -90,6 +90,17 @@ describe("RelayConnector", () => {
     expect(onProtocolError).toHaveBeenCalledWith("session_not_found", "unknown or expired session");
   });
 
+  it("invokes onSessionEnded when the relay forwards an END_SESSION without closing the socket", () => {
+    const onSessionEnded = vi.fn();
+    const connector = new RelayConnector("ws://localhost:8787", { onSessionEnded });
+    connector.connect();
+    lastSocket.onmessage?.({
+      data: JSON.stringify({ v: 1, type: "END_SESSION", seq: 0, timestamp: Date.now(), payload: {} }),
+    });
+
+    expect(onSessionEnded).toHaveBeenCalledOnce();
+  });
+
   it("invokes onClose with the close code and reason", () => {
     const onClose = vi.fn();
     const connector = new RelayConnector("ws://localhost:8787", { onClose });

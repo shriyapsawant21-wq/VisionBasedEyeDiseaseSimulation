@@ -20,6 +20,7 @@ export interface ConnectorEvents {
   onSocketError?: (err: Error) => void;
   onPaired?: (sessionId: string) => void;
   onStateUpdated?: (state: ControllerState) => void;
+  onSessionEnded?: () => void;
   onProtocolError?: (code: string, message: string) => void;
 }
 
@@ -110,6 +111,12 @@ export class RelayConnector {
       }
       case "STATE_UPDATED": {
         this.events.onStateUpdated?.(message.payload as ControllerState);
+        return;
+      }
+      case "END_SESSION": {
+        // the relay sends this (without closing our socket) when the other
+        // side of the pairing disconnects - the room is already gone.
+        this.events.onSessionEnded?.();
         return;
       }
       case "ERROR": {
