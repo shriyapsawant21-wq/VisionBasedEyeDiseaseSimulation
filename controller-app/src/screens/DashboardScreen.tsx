@@ -1,15 +1,22 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Slider from "@react-native-community/slider";
+import type { CompositeScreenProps } from "@react-navigation/native";
+import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
+import type { MainTabsParamList } from "../navigation/MainTabs";
 import { useRelayConnector } from "../useRelayConnector";
 import { DISEASE_INFO, DISEASE_ORDER, FLOATER_TYPES } from "../diseaseInfo";
 import { OptionsButton } from "../components/OptionsButton";
 import { SidePanel } from "../components/SidePanel";
 import type { Comparison } from "../../../relay/src/protocol";
+import { colors, spacing, type } from "../theme";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Dashboard">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabsParamList, "Dashboard">,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 const COMPARISONS: Comparison[] = ["NORMAL", "AFFECTED"];
 const SEVERITY_PRESETS = { Mild: 0.25, Moderate: 0.55, Severe: 0.85 };
@@ -110,7 +117,7 @@ export function DashboardScreen({ navigation }: Props) {
     <View style={styles.root}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.appName}>VisionBridge</Text>
+          <Text style={styles.appName}>VisionSim VR</Text>
           <Text style={[styles.statusLine, paired && styles.statusLinePaired]}>
             {statusLabel(status, sessionId)}
           </Text>
@@ -125,7 +132,7 @@ export function DashboardScreen({ navigation }: Props) {
           </Text>
         ) : null}
 
-        <Text style={styles.section}>Diagnostic Profile</Text>
+        <Text style={styles.sectionLabel}>Diagnostic Profile</Text>
         <View style={styles.row}>
           {DISEASE_ORDER.map((disease) => {
             const info = DISEASE_INFO[disease];
@@ -133,7 +140,7 @@ export function DashboardScreen({ navigation }: Props) {
             return (
               <Pressable
                 key={disease}
-                style={[styles.chip, active && styles.chipActive, !paired && styles.chipDisabled]}
+                style={[styles.chip, active && styles.chipActive, !paired && styles.disabled]}
                 disabled={!paired}
                 onPress={() => setDisease(disease)}
               >
@@ -143,130 +150,153 @@ export function DashboardScreen({ navigation }: Props) {
           })}
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{activeInfo.clinicalLabel}</Text>
-          <Text style={styles.cardBody}>{activeInfo.description}</Text>
+        <View style={styles.profileSection}>
+          <Text style={styles.profileTitle}>{activeInfo.clinicalLabel}</Text>
+          <Text style={styles.profileBody}>{activeInfo.description}</Text>
         </View>
 
-        <Text style={styles.section}>Severity</Text>
-        <View style={styles.severityBarTrack}>
-          <View style={[styles.severityBarFill, { width: `${Math.round(localSeverity * 100)}%` }]} />
-        </View>
-        <Slider
-          minimumValue={0}
-          maximumValue={1}
-          value={localSeverity}
-          onValueChange={setLocalSeverity}
-          onSlidingComplete={setSeverity}
-          disabled={!paired}
-        />
-        <View style={styles.row}>
-          {(Object.keys(SEVERITY_PRESETS) as Array<keyof typeof SEVERITY_PRESETS>).map((preset) => (
-            <Button
-              key={preset}
-              title={preset}
-              disabled={!paired}
-              onPress={() => {
-                const value = SEVERITY_PRESETS[preset];
-                setLocalSeverity(value);
-                setSeverity(value);
-              }}
-            />
-          ))}
+        <Text style={styles.sectionLabel}>Severity</Text>
+        <View style={styles.severitySection}>
+          <Text style={styles.severityValue}>{Math.round(localSeverity * 100)}%</Text>
+          <Slider
+            minimumValue={0}
+            maximumValue={1}
+            value={localSeverity}
+            onValueChange={setLocalSeverity}
+            onSlidingComplete={setSeverity}
+            disabled={!paired}
+            minimumTrackTintColor={colors.coral}
+            thumbTintColor={colors.coral}
+          />
+          <View style={styles.row}>
+            {(Object.keys(SEVERITY_PRESETS) as Array<keyof typeof SEVERITY_PRESETS>).map((preset) => (
+              <Pressable
+                key={preset}
+                style={[styles.presetButton, !paired && styles.disabled]}
+                disabled={!paired}
+                onPress={() => {
+                  const value = SEVERITY_PRESETS[preset];
+                  setLocalSeverity(value);
+                  setSeverity(value);
+                }}
+              >
+                <Text style={styles.presetButtonText}>{preset}</Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
 
-        <Text style={styles.section}>Vision Mode</Text>
-        <View style={styles.row}>
+        <Text style={styles.sectionLabel}>Vision Mode</Text>
+        <View style={styles.segmented}>
           {COMPARISONS.map((comparison) => {
             const active = comparison === activeComparison;
             return (
               <Pressable
                 key={comparison}
-                style={[styles.chip, active && styles.chipActive, !paired && styles.chipDisabled]}
+                style={[styles.segment, active && styles.segmentActive, !paired && styles.disabled]}
                 disabled={!paired}
                 onPress={() => setComparison(comparison)}
               >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{comparison}</Text>
+                <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{comparison}</Text>
               </Pressable>
             );
           })}
         </View>
 
-        <Text style={styles.section}>Progression Timeline</Text>
-        <Text style={styles.timelineTime}>
-          {formatTime(elapsed)} / {formatTime(PROGRESSION_TOTAL_SECONDS)}
-        </Text>
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${(elapsed / PROGRESSION_TOTAL_SECONDS) * 100}%` }]} />
-        </View>
-        <View style={styles.row}>
-          <Button title="Play" onPress={handlePlay} disabled={!paired || isRunning} />
-          <Button title="Pause" onPress={handlePause} disabled={!paired || !isRunning} />
-          <Button title="Reset" onPress={handleTimelineReset} disabled={!paired} />
-        </View>
-
-        <View style={styles.row}>
-          <Button title="Recenter View" onPress={() => recenter()} disabled={!paired} />
-        </View>
-        <View style={styles.row}>
-          <Button title="Reset to Normal" color="#c0392b" onPress={() => reset()} disabled={!paired} />
-        </View>
-
-        <Text style={styles.section}>Floaters (reference)</Text>
-        {FLOATER_TYPES.map((f) => (
-          <View key={f.source} style={styles.floaterRow}>
-            <Text style={styles.floaterSource}>{f.source}</Text>
-            <Text style={styles.floaterDescription}>{f.description}</Text>
+        <Text style={styles.sectionLabel}>Progression</Text>
+        <View style={styles.progressionSection}>
+          <Text style={styles.timelineTime}>
+            {formatTime(elapsed)} / {formatTime(PROGRESSION_TOTAL_SECONDS)}
+          </Text>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: `${(elapsed / PROGRESSION_TOTAL_SECONDS) * 100}%` }]} />
           </View>
-        ))}
+          <View style={styles.row}>
+            <Pressable
+              style={[styles.textButton, (!paired || isRunning) && styles.disabled]}
+              disabled={!paired || isRunning}
+              onPress={handlePlay}
+            >
+              <Text style={styles.textButtonLabel}>Play</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.textButton, (!paired || !isRunning) && styles.disabled]}
+              disabled={!paired || !isRunning}
+              onPress={handlePause}
+            >
+              <Text style={styles.textButtonLabel}>Pause</Text>
+            </Pressable>
+            <Pressable style={[styles.textButton, !paired && styles.disabled]} disabled={!paired} onPress={handleTimelineReset}>
+              <Text style={styles.textButtonLabel}>Reset</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <Text style={styles.sectionLabel}>Quick Actions</Text>
+        <Pressable style={[styles.quickAction, !paired && styles.disabled]} disabled={!paired} onPress={() => recenter()}>
+          <Text style={styles.quickActionText}>Recenter View</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.quickActionSafety, !paired && styles.disabled]}
+          disabled={!paired}
+          onPress={() => reset()}
+        >
+          <Text style={styles.quickActionSafetyText}>Reset to Normal</Text>
+        </Pressable>
+
+        <Text style={styles.sectionLabel}>Floaters Reference</Text>
+        <View style={styles.floaterSection}>
+          {FLOATER_TYPES.map((f) => (
+            <Text key={f.source} style={styles.floaterLine}>
+              <Text style={styles.floaterSource}>{f.source}</Text> — {f.description}
+            </Text>
+          ))}
+        </View>
 
         <View style={styles.spacer} />
         {paired &&
           (confirmingEnd ? (
             <View style={styles.row}>
-              <Button
-                title="Confirm end session"
-                color="red"
-                onPress={() => {
-                  endSession();
-                  setConfirmingEnd(false);
-                  disconnect();
-                }}
-              />
-              <Button title="Cancel" onPress={() => setConfirmingEnd(false)} />
+              <Pressable style={styles.quickActionSafety} onPress={() => {
+                endSession();
+                setConfirmingEnd(false);
+                disconnect();
+              }}>
+                <Text style={styles.quickActionSafetyText}>Confirm end session</Text>
+              </Pressable>
+              <Pressable style={styles.textButton} onPress={() => setConfirmingEnd(false)}>
+                <Text style={styles.textButtonLabel}>Cancel</Text>
+              </Pressable>
             </View>
           ) : (
-            <Button title="End session" onPress={() => setConfirmingEnd(true)} />
+            <Pressable style={styles.textButton} onPress={() => setConfirmingEnd(true)}>
+              <Text style={styles.textButtonLabel}>End session</Text>
+            </Pressable>
           ))}
       </ScrollView>
 
       <SidePanel visible={panelOpen} onClose={() => setPanelOpen(false)}>
         <Text style={styles.panelTitle}>Options</Text>
         {paired ? (
-          <Button
-            title="Disconnect"
+          <Pressable
+            style={styles.textButton}
             onPress={() => {
               setPanelOpen(false);
               disconnect();
             }}
-          />
+          >
+            <Text style={styles.textButtonLabel}>Disconnect</Text>
+          </Pressable>
         ) : (
-          <>
-            <Button
-              title="Scan QR Code"
-              onPress={() => {
-                setPanelOpen(false);
-                navigation.navigate("QrScan");
-              }}
-            />
-            <Button
-              title="Enter Pairing Code"
-              onPress={() => {
-                setPanelOpen(false);
-                navigation.navigate("Pairing");
-              }}
-            />
-          </>
+          <Pressable
+            style={styles.textButton}
+            onPress={() => {
+              setPanelOpen(false);
+              navigation.navigate("Pairing");
+            }}
+          >
+            <Text style={styles.textButtonLabel}>Connect / Pair</Text>
+          </Pressable>
         )}
       </SidePanel>
     </View>
@@ -276,119 +306,194 @@ export function DashboardScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: colors.offWhite,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 48,
-    paddingBottom: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#ccc",
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.md,
+    backgroundColor: colors.charcoal,
   },
   appName: {
-    fontSize: 18,
-    fontWeight: "bold",
+    ...type.value,
+    color: colors.textOnDark,
   },
   statusLine: {
-    color: "#666",
+    ...type.body,
+    fontSize: 13,
+    color: colors.sand,
   },
   statusLinePaired: {
-    color: "#2e7d32",
+    color: colors.teal,
   },
   container: {
-    padding: 24,
-    gap: 4,
+    padding: spacing.lg,
+    gap: spacing.xs,
   },
-  section: {
-    marginTop: 20,
-    fontWeight: "bold",
-    fontSize: 16,
+  sectionLabel: {
+    ...type.sectionLabel,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
   },
   row: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-    marginTop: 8,
+    gap: spacing.sm,
   },
   chip: {
     borderWidth: 1,
-    borderColor: "#999",
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
+    borderColor: colors.border,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.white,
   },
   chipActive: {
-    backgroundColor: "#1a1a2e",
-    borderColor: "#1a1a2e",
+    backgroundColor: colors.teal,
+    borderColor: colors.teal,
   },
-  chipDisabled: {
+  disabled: {
     opacity: 0.4,
   },
   chipText: {
-    color: "#1a1a2e",
+    ...type.button,
+    color: colors.textOnLight,
   },
   chipTextActive: {
-    color: "#fff",
+    color: colors.textOnDark,
   },
-  card: {
-    marginTop: 12,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#f2f2f2",
+  profileSection: {
+    marginTop: spacing.md,
+    padding: spacing.lg,
+    backgroundColor: colors.sandLight,
   },
-  cardTitle: {
-    fontWeight: "bold",
+  profileTitle: {
+    ...type.value,
+    fontSize: 18,
+    color: colors.textOnLight,
   },
-  cardBody: {
-    marginTop: 4,
-    color: "#444",
+  profileBody: {
+    ...type.body,
+    marginTop: spacing.xs,
+    color: colors.textMuted,
   },
-  severityBarTrack: {
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#e0e0e0",
-    marginTop: 8,
-    overflow: "hidden",
+  severitySection: {
+    padding: spacing.lg,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  severityBarFill: {
-    height: "100%",
-    backgroundColor: "#e67e22",
+  severityValue: {
+    ...type.title,
+    fontSize: 32,
+    color: colors.coral,
+  },
+  presetButton: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  presetButtonText: {
+    ...type.button,
+    color: colors.textOnLight,
+  },
+  segmented: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: colors.teal,
+  },
+  segment: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+  },
+  segmentActive: {
+    backgroundColor: colors.teal,
+  },
+  segmentText: {
+    ...type.button,
+    color: colors.teal,
+  },
+  segmentTextActive: {
+    color: colors.textOnDark,
+  },
+  progressionSection: {
+    padding: spacing.lg,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.sm,
   },
   timelineTime: {
-    marginTop: 8,
+    ...type.value,
     fontVariant: ["tabular-nums"],
+    color: colors.textOnLight,
   },
   progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#e0e0e0",
-    marginTop: 4,
-    overflow: "hidden",
+    height: 4,
+    backgroundColor: colors.border,
   },
   progressFill: {
     height: "100%",
-    backgroundColor: "#3498db",
+    backgroundColor: colors.coral,
   },
-  floaterRow: {
-    marginTop: 8,
+  textButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.charcoal,
+  },
+  textButtonLabel: {
+    ...type.button,
+    color: colors.charcoal,
+  },
+  quickAction: {
+    backgroundColor: colors.charcoal,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+    marginTop: spacing.sm,
+  },
+  quickActionText: {
+    ...type.button,
+    color: colors.textOnDark,
+  },
+  quickActionSafety: {
+    backgroundColor: colors.coral,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+    marginTop: spacing.sm,
+  },
+  quickActionSafetyText: {
+    ...type.button,
+    color: colors.white,
+  },
+  floaterSection: {
+    padding: spacing.lg,
+    backgroundColor: colors.sandLight,
+    gap: spacing.xs,
+  },
+  floaterLine: {
+    ...type.body,
+    color: colors.textMuted,
   },
   floaterSource: {
-    fontWeight: "bold",
-  },
-  floaterDescription: {
-    color: "#444",
+    fontWeight: "700",
+    color: colors.textOnLight,
   },
   error: {
-    marginTop: 8,
-    color: "red",
+    marginTop: spacing.sm,
+    color: colors.coral,
   },
   spacer: {
-    height: 24,
+    height: spacing.lg,
   },
   panelTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+    ...type.value,
+    color: colors.textOnLight,
   },
 });

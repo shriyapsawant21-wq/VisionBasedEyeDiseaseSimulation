@@ -2,21 +2,42 @@ import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
+import { hasAcceptedDisclaimer, getStoredRole } from "../onboarding";
+import { colors, type } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Splash">;
 
-const SPLASH_DURATION_MS = 1200;
+const MIN_SPLASH_MS = 900;
 
 export function SplashScreen({ navigation }: Props) {
   useEffect(() => {
-    const timer = setTimeout(() => navigation.replace("Dashboard"), SPLASH_DURATION_MS);
-    return () => clearTimeout(timer);
+    let cancelled = false;
+
+    async function decideNextScreen() {
+      const [accepted, role, _minDelay] = await Promise.all([
+        hasAcceptedDisclaimer(),
+        getStoredRole(),
+        new Promise((resolve) => setTimeout(resolve, MIN_SPLASH_MS)),
+      ]);
+      if (cancelled) return;
+
+      if (accepted && role === "DOCTOR_CONTROLLER") {
+        navigation.replace("MainTabs");
+      } else {
+        navigation.replace("Disclaimer");
+      }
+    }
+
+    decideNextScreen();
+    return () => {
+      cancelled = true;
+    };
   }, [navigation]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>VisionBridge</Text>
-      <Text style={styles.subtitle}>Controller</Text>
+      <Text style={styles.title}>VisionSim VR</Text>
+      <Text style={styles.subtitle}>Educational Simulation Only</Text>
     </View>
   );
 }
@@ -26,16 +47,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#1a1a2e",
-    gap: 4,
+    backgroundColor: colors.charcoal,
+    gap: 8,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#fff",
+    ...type.title,
+    color: colors.textOnDark,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#aaa",
+    ...type.sectionLabel,
+    color: colors.sand,
+    textTransform: "uppercase",
   },
 });
