@@ -5,9 +5,10 @@ namespace VisionSimulation.DiseaseEffects
     public sealed class TunnelVisionEffect : MonoBehaviour, IVisionEffect
     {
         [SerializeField] private Material tunnelVisionMaterial;
-        [SerializeField, Range(0.1f, 1f)] private float severeClearRadius = 0.2f;
-        [SerializeField, Range(0.01f, 0.5f)] private float featherWidth = 0.12f;
-        [SerializeField, Range(0f, 1f)] private float maximumPeripheralDarkness = 1f;
+        [SerializeField, Range(0.5f, 1.25f)] private float mildClearRadius = 0.82f;
+        [SerializeField, Range(0.1f, 0.5f)] private float severeClearRadius = 0.18f;
+        [SerializeField, Range(0.01f, 0.25f)] private float featherWidth = 0.08f;
+        [SerializeField, Range(0.85f, 0.98f)] private float peripheralDarkness = 0.95f;
         [SerializeField, Range(0f, 1f)] private float severePeripheralSaturation = 0.1f;
         [SerializeField] private Vector2 centerOffset;
 
@@ -59,9 +60,12 @@ namespace VisionSimulation.DiseaseEffects
             float appliedSeverity = effectEnabled ? severity : 0f;
             tunnelVisionMaterial.SetFloat(EnabledId, effectEnabled ? 1f : 0f);
             tunnelVisionMaterial.SetFloat(SeverityId, appliedSeverity);
-            tunnelVisionMaterial.SetFloat(ClearRadiusId, Mathf.Lerp(1f, severeClearRadius, appliedSeverity));
+            // Severity changes the remaining field of view, not the opacity of
+            // the peripheral mask. The nonlinear curve keeps early stages broad.
+            float radiusProgress = Mathf.Pow(appliedSeverity, 1.25f);
+            tunnelVisionMaterial.SetFloat(ClearRadiusId, Mathf.Lerp(mildClearRadius, severeClearRadius, radiusProgress));
             tunnelVisionMaterial.SetFloat(FeatherWidthId, featherWidth);
-            tunnelVisionMaterial.SetFloat(PeripheralDarknessId, maximumPeripheralDarkness * appliedSeverity);
+            tunnelVisionMaterial.SetFloat(PeripheralDarknessId, effectEnabled ? peripheralDarkness : 0f);
             tunnelVisionMaterial.SetFloat(PeripheralSaturationId, Mathf.Lerp(1f, severePeripheralSaturation, appliedSeverity));
             tunnelVisionMaterial.SetVector(CenterOffsetId, centerOffset);
         }
