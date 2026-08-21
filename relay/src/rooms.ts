@@ -15,8 +15,14 @@ export interface Room {
   lastActivityAt: number;
 }
 
-const UNPAIRED_TTL_MS = 2 * 60 * 1000; // ~2 minutes, per doc
-const INACTIVITY_TTL_MS = 30 * 60 * 1000; // destroy paired-but-idle rooms
+export const UNPAIRED_TTL_MS = 2 * 60 * 1000; // ~2 minutes, per doc
+export const INACTIVITY_TTL_MS = 30 * 60 * 1000; // destroy paired-but-idle rooms
+
+export interface RoomRegistryOptions {
+  /** Overrides exist so tests can exercise expiry without waiting minutes. */
+  unpairedTtlMs?: number;
+  inactivityTtlMs?: number;
+}
 
 const SESSION_ID_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
 
@@ -34,6 +40,13 @@ function generatePairingToken(): string {
 
 export class RoomRegistry {
   private rooms = new Map<string, Room>();
+  private readonly unpairedTtlMs: number;
+  private readonly inactivityTtlMs: number;
+
+  constructor(options: RoomRegistryOptions = {}) {
+    this.unpairedTtlMs = options.unpairedTtlMs ?? UNPAIRED_TTL_MS;
+    this.inactivityTtlMs = options.inactivityTtlMs ?? INACTIVITY_TTL_MS;
+  }
 
   createRoom(simulationSocket: WebSocket): Room {
     let sessionId = generateSessionId();
@@ -48,7 +61,7 @@ export class RoomRegistry {
       pendingControllerSocket: null,
       paired: false,
       createdAt: now,
-      pairByExpiresAt: now + UNPAIRED_TTL_MS,
+      pairByExpiresAt: now + this.unpairedTtlMs,
       lastActivityAt: now,
     };
     this.rooms.set(sessionId, room);
@@ -94,7 +107,7 @@ export class RoomRegistry {
         this.destroy(room.sessionId);
         continue;
       }
-      if (room.paired && now - room.lastActivityAt > INACTIVITY_TTL_MS) {
+      if (room.paired && now - room.lastActivityAt > this.inactivityTtlMs) {
         onExpire(room, "inactivity_timeout");
         this.destroy(room.sessionId);
       }

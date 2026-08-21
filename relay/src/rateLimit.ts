@@ -3,7 +3,9 @@
  * Not for distributed use -- fine for a single relay process.
  */
 export class RateLimiter {
-  private counts = new Map<object, { count: number; windowStart: number }>();
+  // WeakMap, not Map: a socket that never reaches forget() (abrupt teardown,
+  // an error path) must not pin its bucket in memory for the process lifetime.
+  private counts = new WeakMap<object, { count: number; windowStart: number }>();
 
   constructor(
     private readonly maxPerWindow: number,
