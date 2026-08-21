@@ -1,0 +1,27 @@
+# Unity generated/cache directories - large, regenerated, never hand-edited
+unity-vr/Library/
+unity-vr/Temp/
+unity-vr/Logs/
+unity-vr/UserSettings/
+unity-vr/obj/
+unity-vr/Build/
+unity-vr/Builds/
+unity-vr/MemoryCaptures/
+unity-vr/*.csproj
+unity-vr/*.sln
+unity-vr/*.slnx
+unity-vr/.vscode/
+
+# Known bloat: ~4GB HDRP demo import that doesn't belong in this URP project
+# (see project_visionbridge_current_state memory - flagged, not yet removed)
+unity-vr/Assets/TerrainDemoScene_URP/
+unity-vr/Assets/Road sign - Big pack/
+
+# Node
+node_modules/
+**/node_modules/
+relay/dist/
+controller-app/.expo/
+
+# Misc
+*.log
