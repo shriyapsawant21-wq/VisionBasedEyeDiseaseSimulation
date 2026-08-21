@@ -65,6 +65,9 @@ export function RelayConnectorProvider({ children }: { children: React.ReactNode
         wasPairedRef.current = true;
         setSessionId(id);
         setStatus("paired");
+        // a failed attempt (expired code, wrong token) leaves an error behind;
+        // clear it so a successful pair doesn't render "Connected" next to it
+        setLastError(null);
       },
       onStateUpdated: (state) => setControllerState(state),
       onProtocolError: (code, message) => setLastError({ code, message }),

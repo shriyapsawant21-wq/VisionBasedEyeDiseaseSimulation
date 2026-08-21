@@ -22,7 +22,7 @@ export function SplashScreen({ navigation }: Props) {
       if (cancelled) return;
 
       if (accepted && role === "DOCTOR_CONTROLLER") {
-        navigation.replace("MainTabs");
+        navigation.replace("Dashboard");
       } else {
         navigation.replace("Disclaimer");
       }
