@@ -7,37 +7,38 @@ namespace VisionSimulation.Pairing
     /// The JSON the QR code carries.
     ///
     /// The controller parses this with JSON.parse and reads sessionId and
-    /// pairingToken (see controller-app/src/screens/PairingScreen.tsx); it
-    /// ignores fields it does not know, so version and expiresAt are safe to
-    /// include and give the payload room to grow.
-    ///
-    /// Deliberately absent: any relay host or IP address. The controller keeps
-    /// its own relay URL setting, and putting an address in the QR would both
-    /// leak network topology and break the moment DHCP reassigns it.
+    /// pairingToken and relayUrl (see the controller pairing screen). Including
+    /// the endpoint makes pairing a true one-scan flow: the QR is regenerated
+    /// whenever Unity starts a session, so it carries the address that Unity is
+    /// successfully using right now rather than a stale phone-side default.
     /// </summary>
     [Serializable]
     public sealed class PairingPayload
     {
         /// <summary>Payload schema version, not the relay protocol version.</summary>
-        public int version = 1;
+        public int version = 2;
 
         public string sessionId;
         public string pairingToken;
+        public string relayUrl;
 
         /// <summary>Unix seconds; mirrors SESSION_CREATED.expiresAt.</summary>
         public long expiresAt;
 
-        public static string ToJson(string sessionId, string pairingToken, long expiresAt)
+        public static string ToJson(string sessionId, string pairingToken, long expiresAt, string relayUrl)
         {
             if (string.IsNullOrEmpty(sessionId))
                 throw new ArgumentException("sessionId is required.", nameof(sessionId));
             if (string.IsNullOrEmpty(pairingToken))
                 throw new ArgumentException("pairingToken is required.", nameof(pairingToken));
+            if (string.IsNullOrWhiteSpace(relayUrl))
+                throw new ArgumentException("relayUrl is required.", nameof(relayUrl));
 
             var payload = new PairingPayload
             {
                 sessionId = sessionId,
                 pairingToken = pairingToken,
+                relayUrl = relayUrl.Trim(),
                 expiresAt = expiresAt
             };
 

@@ -53,6 +53,7 @@ namespace VisionSimulation.Networking
         private long seq;
         private float nextHeartbeat;
         private bool helloSent;
+        private System.Threading.Tasks.Task<string> discoveryTask;
 
         public static RelaySession Instance { get; private set; }
 
@@ -150,8 +151,7 @@ namespace VisionSimulation.Networking
             helloSent = false;
 
             State = RelaySessionState.Connecting;
-            client = new RelayClient();
-            client.Connect(relayUrl);
+            discoveryTask = RelayDiscovery.FindAsync();
         }
 
         /// <summary>Persists the endpoint so the next launch reuses it.</summary>
@@ -221,6 +221,19 @@ namespace VisionSimulation.Networking
 
         private void Update()
         {
+            if (State == RelaySessionState.Connecting && client == null && discoveryTask != null && discoveryTask.IsCompleted)
+            {
+                if (discoveryTask.Status == System.Threading.Tasks.TaskStatus.RanToCompletion &&
+                    !string.IsNullOrWhiteSpace(discoveryTask.Result))
+                {
+                    SetRelayUrl(discoveryTask.Result);
+                }
+
+                discoveryTask = null;
+                client = new RelayClient();
+                client.Connect(relayUrl);
+            }
+
             if (client == null)
                 return;
 
@@ -395,6 +408,7 @@ namespace VisionSimulation.Networking
 
         private void DisposeClient()
         {
+            discoveryTask = null;
             if (client == null)
                 return;
 

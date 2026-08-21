@@ -108,6 +108,10 @@ export function createRelay(options: RelayOptions = {}): Relay {
   });
 
   const wss = new WebSocketServer({ server: httpServer });
+  // The HTTP server also reports startup failures through the WebSocket
+  // server. Keep that secondary event from becoming an uncaught exception;
+  // listen() remains the authoritative promise seen by the entry point.
+  wss.on("error", (error) => log("websocket_server_error", { message: error.message }));
 
   wss.on("connection", (socket) => {
     socketMeta.set(socket, { role: "UNASSIGNED", sessionId: null, isAlive: true });

@@ -1,9 +1,11 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VisionSimulation.Networking;
 using VisionSimulation.Pairing;
+using VisionSimulation.VR;
 
 namespace VisionSimulation.UI
 {
@@ -91,6 +93,7 @@ namespace VisionSimulation.UI
             detailText = SimpleUi.CreateText(column, string.Empty, 26, SimpleUi.TextMuted);
 
             relayUrlField = SimpleUi.CreateInputField(column, string.Empty);
+            relayUrlField.gameObject.SetActive(false);
             relayUrlField.onEndEdit.AddListener(OnRelayUrlChanged);
 
             primaryButton = SimpleUi.CreateButton(column, string.Empty, SimpleUi.Primary, Color.black);
@@ -118,7 +121,7 @@ namespace VisionSimulation.UI
             // is not left on screen behind the transition.
             HideQrCode();
             Refresh();
-            LoadGarden();
+            StartCoroutine(StartVrAndLoadGarden());
         }
 
         private void OnSessionEnded()
@@ -140,7 +143,11 @@ namespace VisionSimulation.UI
             if (string.IsNullOrEmpty(session.SessionId) || string.IsNullOrEmpty(session.PairingToken))
                 return;
 
-            string payload = PairingPayload.ToJson(session.SessionId, session.PairingToken, session.ExpiresAt);
+            string payload = PairingPayload.ToJson(
+                session.SessionId,
+                session.PairingToken,
+                session.ExpiresAt,
+                session.RelayUrl);
 
             try
             {
@@ -227,13 +234,16 @@ namespace VisionSimulation.UI
         {
             bool editingAllowed = session.State != RelaySessionState.Paired;
             relayUrlField.interactable = editingAllowed;
-            relayUrlField.gameObject.SetActive(editingAllowed);
+            // Discovery normally supplies this automatically. Keep the field
+            // hidden during normal operation; failure details still show the
+            // discovered/fallback address for troubleshooting.
+            relayUrlField.gameObject.SetActive(false);
 
             switch (session.State)
             {
                 case RelaySessionState.Idle:
                 case RelaySessionState.Connecting:
-                    statusText.text = "Connecting to relay...";
+                    statusText.text = "Finding relay...";
                     statusText.color = SimpleUi.Primary;
                     detailText.text = session.RelayUrl;
                     SetButtons(null, "Cancel");
@@ -344,6 +354,13 @@ namespace VisionSimulation.UI
 
             navigatedToGarden = true;
             SceneManager.LoadScene(gardenSceneName);
+        }
+
+        private IEnumerator StartVrAndLoadGarden()
+        {
+            statusText.text = "Starting VR...";
+            yield return VrModeLifecycle.StartForSimulation();
+            LoadGarden();
         }
     }
 }

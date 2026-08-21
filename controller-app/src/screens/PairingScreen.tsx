@@ -5,33 +5,10 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import { useRelayConnector } from "../useRelayConnector";
 import { defaultRelayUrl } from "../relayUrl";
+import { decodePairingPayload, type PairingPayload } from "../pairingPayload";
 import { colors, spacing, type } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Pairing">;
-
-interface PairingPayload {
-  sessionId: string;
-  pairingToken: string;
-}
-
-/**
- * Decodes a QR payload into { sessionId, pairingToken }. Placeholder shape
- * ({"sessionId":"...","pairingToken":"..."} as JSON) - MUST be confirmed
- * against whatever Unity's Pairing.unity scene actually encodes in its QR
- * code before this is real. Screen/permission handling around it is
- * complete either way.
- */
-function decodePairingPayload(raw: string): PairingPayload | null {
-  try {
-    const parsed = JSON.parse(raw);
-    if (typeof parsed.sessionId === "string" && typeof parsed.pairingToken === "string") {
-      return { sessionId: parsed.sessionId, pairingToken: parsed.pairingToken };
-    }
-  } catch {
-    // not JSON - fall through
-  }
-  return null;
-}
 
 export function PairingScreen({ navigation }: Props) {
   const { status, lastError, connect, pairRequest } = useRelayConnector();
@@ -60,7 +37,8 @@ export function PairingScreen({ navigation }: Props) {
     setDecodeError(null);
     setPending(payload);
     setSessionId(payload.sessionId);
-    connect(relayUrl);
+    if (payload.relayUrl) setRelayUrl(payload.relayUrl);
+    connect(payload.relayUrl ?? relayUrl);
   }
 
   function handleManualConnect() {
