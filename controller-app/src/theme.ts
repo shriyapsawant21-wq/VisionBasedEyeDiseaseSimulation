@@ -9,11 +9,15 @@ export const colors = {
   tealDark: "#2C4C4C",
   coral: "#C94E44",
   coralDark: "#A83E36",
+  /** Deep oxblood used for the disease card stub. */
+  deepRed: "#7B1E1A",
   sand: "#C1AB85",
   sandLight: "#EDE4D3",
   charcoal: "#171817",
   charcoalLight: "#2A2B29",
   offWhite: "#F6F3EC",
+  /** A shade down from offWhite - the ground the disease cards sit on. */
+  offWhiteDeep: "#EBE6DB",
   white: "#FFFFFF",
   textOnLight: "#171817",
   textOnDark: "#F6F3EC",

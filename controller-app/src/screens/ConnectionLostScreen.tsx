@@ -9,17 +9,16 @@ type Props = NativeStackScreenProps<RootStackParamList, "ConnectionLost">;
 /**
  * Shown when a session that was paired drops - either the simulation
  * device disconnected (relay resets the room per relay/src/index.ts's
- * close handler) or the socket itself closed. Dashboard (inside MainTabs)
- * is the resting screen now, so "back" here means returning to it
- * directly (StatusRouter only reacts to "paired"/"sessionLost", not plain
- * "disconnected").
+ * close handler) or the socket itself closed. Dashboard is the resting
+ * screen now, so "back" here means returning to it directly (StatusRouter
+ * only reacts to "paired"/"sessionLost", not plain "disconnected").
  */
 export function ConnectionLostScreen({ navigation }: Props) {
   const { lastError, disconnect } = useRelayConnector();
 
   function handleBack() {
     disconnect();
-    navigation.reset({ index: 0, routes: [{ name: "MainTabs" }] });
+    navigation.reset({ index: 0, routes: [{ name: "Dashboard" }] });
   }
 
   return (

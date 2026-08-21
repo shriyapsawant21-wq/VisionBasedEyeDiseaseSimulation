@@ -12,7 +12,7 @@ export function RoleSelectionScreen({ navigation }: Props) {
 
   async function handleDoctorController() {
     await setStoredRole("DOCTOR_CONTROLLER");
-    navigation.replace("MainTabs");
+    navigation.replace("Dashboard");
   }
 
   function handleSimulationDevice() {
