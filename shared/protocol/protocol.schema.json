@@ -1,0 +1,707 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://visionbridge.local/protocol.schema.json",
+  "title": "VisionBridge relay protocol v1",
+  "description": "Generated from relay/src/protocol.ts by scripts/generateSchema.ts. Do not edit by hand.",
+  "definitions": {
+    "ClientMessage": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "type": "number",
+              "const": 1
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "timestamp": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "type": {
+              "type": "string",
+              "const": "HELLO"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "SIMULATION",
+                    "CONTROLLER"
+                  ]
+                }
+              },
+              "required": [
+                "role"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "PAIR_REQUEST"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "sessionId": {
+                  "type": "string",
+                  "minLength": 6,
+                  "maxLength": 6
+                },
+                "pairingToken": {
+                  "type": "string",
+                  "minLength": 16,
+                  "maxLength": 128
+                }
+              },
+              "required": [
+                "sessionId",
+                "pairingToken"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "PAIR_ACCEPT"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "accepted": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "accepted"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "SET_DISEASE"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "disease": {
+                  "type": "string",
+                  "enum": [
+                    "METAMORPHOPSIA",
+                    "CENTRAL_BLUR",
+                    "TUNNEL_VISION"
+                  ]
+                }
+              },
+              "required": [
+                "disease"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "SET_SEVERITY"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "severity": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "severity"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "SET_COMPARISON"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "comparison": {
+                  "type": "string",
+                  "enum": [
+                    "NORMAL",
+                    "AFFECTED"
+                  ]
+                }
+              },
+              "required": [
+                "comparison"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "START_PROGRESSION"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "durationSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 600
+                }
+              },
+              "required": [
+                "durationSeconds"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "PAUSE_PROGRESSION"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "SET_SCENE"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "scene": {
+                  "type": "string",
+                  "enum": [
+                    "GARDEN"
+                  ]
+                }
+              },
+              "required": [
+                "scene"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "RECENTER"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "RESET"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "PING"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "END_SESSION"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "STATE_UPDATED"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "disease": {
+                  "$ref": "#/anyOf/3/properties/payload/properties/disease"
+                },
+                "severity": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "comparison": {
+                  "$ref": "#/anyOf/5/properties/payload/properties/comparison"
+                },
+                "scene": {
+                  "$ref": "#/anyOf/8/properties/payload/properties/scene"
+                }
+              },
+              "required": [
+                "disease",
+                "severity",
+                "comparison",
+                "scene"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type",
+            "payload"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "SessionCreated": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timestamp": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "SESSION_CREATED"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "sessionId": {
+              "type": "string",
+              "minLength": 6,
+              "maxLength": 6
+            },
+            "pairingToken": {
+              "type": "string"
+            },
+            "expiresAt": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "sessionId",
+            "pairingToken",
+            "expiresAt"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "v",
+        "seq",
+        "timestamp",
+        "type",
+        "payload"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "Paired": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timestamp": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "PAIRED"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "sessionId": {
+              "type": "string",
+              "minLength": 6,
+              "maxLength": 6
+            }
+          },
+          "required": [
+            "sessionId"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "v",
+        "seq",
+        "timestamp",
+        "type",
+        "payload"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timestamp": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "ERROR"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "v",
+        "seq",
+        "timestamp",
+        "type",
+        "payload"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/definitions/ClientMessage"
+    },
+    {
+      "$ref": "#/definitions/SessionCreated"
+    },
+    {
+      "$ref": "#/definitions/Paired"
+    },
+    {
+      "$ref": "#/definitions/Error"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{ "v": 1, "type": "HELLO", "seq": 0, "timestamp": 1787234105123, "payload": { "role": "SIMULATION" } }
