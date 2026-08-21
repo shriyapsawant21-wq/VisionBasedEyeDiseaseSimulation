@@ -166,10 +166,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   section: {
-    padding: spacing.lg,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
     gap: spacing.sm,
   },
   row: {
