@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SplashScreen } from "../screens/SplashScreen";
@@ -20,30 +20,24 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 /**
- * Drives screen transitions off connector status rather than user taps,
- * since pairing/disconnection happen from relay events, not navigation
- * actions. The "intentional disconnect" vs. "unexpected drop" distinction
- * is made once, in RelayConnectorContext (status "disconnected" vs.
- * "sessionLost") - this just follows status, it doesn't re-decide it.
- *
- * hasEverConnectedRef guards the initial "disconnected" status (true from
- * app launch, before Splash has even handed off to Pairing) from forcing
- * an immediate reset to Pairing and skipping Splash entirely.
+ * Dashboard is the persistent home screen - Pairing/QrScan are actions the
+ * user reaches from Dashboard's options panel, not a gate before it. This
+ * only reacts to the two events that should force a navigation regardless
+ * of what screen is currently open: successfully pairing (wherever that
+ * was triggered from) snaps back to Dashboard, and an unexpected drop of
+ * an active pairing shows ConnectionLost. Plain "disconnected" is not
+ * handled here - Dashboard is where you land normally, no reset needed.
  */
 function StatusRouter() {
   const { status } = useRelayConnector();
-  const hasEverConnectedRef = useRef(false);
 
   useEffect(() => {
     if (!navigationRef.isReady()) return;
-    if (status !== "disconnected") hasEverConnectedRef.current = true;
 
     if (status === "paired") {
       navigationRef.reset({ index: 0, routes: [{ name: "Dashboard" }] });
     } else if (status === "sessionLost") {
       navigationRef.reset({ index: 0, routes: [{ name: "ConnectionLost" }] });
-    } else if (status === "disconnected" && hasEverConnectedRef.current) {
-      navigationRef.reset({ index: 0, routes: [{ name: "Pairing" }] });
     }
   }, [status]);
 
@@ -55,9 +49,9 @@ export function RootNavigator() {
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Pairing" component={PairingScreen} />
         <Stack.Screen name="QrScan" component={QrScanScreen} />
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="ConnectionLost" component={ConnectionLostScreen} />
       </Stack.Navigator>
       <StatusRouter />

@@ -39,6 +39,7 @@ export function PairingScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <Button title="Back" onPress={() => navigation.goBack()} />
         <Text style={styles.title}>VisionBridge</Text>
         <OptionsButton onPress={() => setPanelOpen(true)} />
       </View>

@@ -9,7 +9,7 @@ const SPLASH_DURATION_MS = 1200;
 
 export function SplashScreen({ navigation }: Props) {
   useEffect(() => {
-    const timer = setTimeout(() => navigation.replace("Pairing"), SPLASH_DURATION_MS);
+    const timer = setTimeout(() => navigation.replace("Dashboard"), SPLASH_DURATION_MS);
     return () => clearTimeout(timer);
   }, [navigation]);
 

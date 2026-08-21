@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Slider from "@react-native-community/slider";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../navigation/RootNavigator";
 import { useRelayConnector } from "../useRelayConnector";
 import { DISEASE_INFO, DISEASE_ORDER, FLOATER_TYPES } from "../diseaseInfo";
 import { OptionsButton } from "../components/OptionsButton";
 import { SidePanel } from "../components/SidePanel";
 import type { Comparison } from "../../../relay/src/protocol";
+
+type Props = NativeStackScreenProps<RootStackParamList, "Dashboard">;
 
 const COMPARISONS: Comparison[] = ["NORMAL", "AFFECTED"];
 const SEVERITY_PRESETS = { Mild: 0.25, Moderate: 0.55, Severe: 0.85 };
@@ -18,13 +22,31 @@ function formatTime(totalSeconds: number): string {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+function statusLabel(status: string, sessionId: string | null): string {
+  switch (status) {
+    case "paired":
+      return `Connected · ${sessionId}`;
+    case "connected":
+      return "Connected, pairing...";
+    case "connecting":
+      return "Connecting...";
+    default:
+      return "Not connected";
+  }
+}
+
 /**
- * Real Dashboard per the doctor-dashboard spec. Scene switching is
- * intentionally omitted: SceneEnum only has "GARDEN" right now, so there's
- * nothing to switch between yet.
+ * Dashboard is the app's persistent home screen (not gated behind pairing).
+ * Controls that require a paired session are disabled until status is
+ * "paired" - pressing them earlier would just get a "not_paired" error
+ * back from the relay, so disabling is purely a UX nicety, not a safety
+ * requirement (relay already rejects the message either way). Scene
+ * switching is intentionally omitted: SceneEnum only has "GARDEN" right
+ * now, so there's nothing to switch between yet.
  */
-export function DashboardScreen() {
+export function DashboardScreen({ navigation }: Props) {
   const {
+    status,
     sessionId,
     controllerState,
     lastError,
@@ -46,6 +68,7 @@ export function DashboardScreen() {
   const [elapsed, setElapsed] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const paired = status === "paired";
   const activeDisease = controllerState?.disease ?? "CENTRAL_BLUR";
   const activeComparison = controllerState?.comparison ?? "NORMAL";
   const activeInfo = DISEASE_INFO[activeDisease];
@@ -88,7 +111,9 @@ export function DashboardScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.appName}>VisionBridge</Text>
-          <Text style={styles.statusLine}>Connected · {sessionId}</Text>
+          <Text style={[styles.statusLine, paired && styles.statusLinePaired]}>
+            {statusLabel(status, sessionId)}
+          </Text>
         </View>
         <OptionsButton onPress={() => setPanelOpen(true)} />
       </View>
@@ -108,7 +133,8 @@ export function DashboardScreen() {
             return (
               <Pressable
                 key={disease}
-                style={[styles.chip, active && styles.chipActive]}
+                style={[styles.chip, active && styles.chipActive, !paired && styles.chipDisabled]}
+                disabled={!paired}
                 onPress={() => setDisease(disease)}
               >
                 <Text style={[styles.chipText, active && styles.chipTextActive]}>{info.shortLabel}</Text>
@@ -132,12 +158,14 @@ export function DashboardScreen() {
           value={localSeverity}
           onValueChange={setLocalSeverity}
           onSlidingComplete={setSeverity}
+          disabled={!paired}
         />
         <View style={styles.row}>
           {(Object.keys(SEVERITY_PRESETS) as Array<keyof typeof SEVERITY_PRESETS>).map((preset) => (
             <Button
               key={preset}
               title={preset}
+              disabled={!paired}
               onPress={() => {
                 const value = SEVERITY_PRESETS[preset];
                 setLocalSeverity(value);
@@ -154,7 +182,8 @@ export function DashboardScreen() {
             return (
               <Pressable
                 key={comparison}
-                style={[styles.chip, active && styles.chipActive]}
+                style={[styles.chip, active && styles.chipActive, !paired && styles.chipDisabled]}
+                disabled={!paired}
                 onPress={() => setComparison(comparison)}
               >
                 <Text style={[styles.chipText, active && styles.chipTextActive]}>{comparison}</Text>
@@ -171,16 +200,16 @@ export function DashboardScreen() {
           <View style={[styles.progressFill, { width: `${(elapsed / PROGRESSION_TOTAL_SECONDS) * 100}%` }]} />
         </View>
         <View style={styles.row}>
-          <Button title="Play" onPress={handlePlay} disabled={isRunning} />
-          <Button title="Pause" onPress={handlePause} disabled={!isRunning} />
-          <Button title="Reset" onPress={handleTimelineReset} />
+          <Button title="Play" onPress={handlePlay} disabled={!paired || isRunning} />
+          <Button title="Pause" onPress={handlePause} disabled={!paired || !isRunning} />
+          <Button title="Reset" onPress={handleTimelineReset} disabled={!paired} />
         </View>
 
         <View style={styles.row}>
-          <Button title="Recenter View" onPress={() => recenter()} />
+          <Button title="Recenter View" onPress={() => recenter()} disabled={!paired} />
         </View>
         <View style={styles.row}>
-          <Button title="Reset to Normal" color="#c0392b" onPress={() => reset()} />
+          <Button title="Reset to Normal" color="#c0392b" onPress={() => reset()} disabled={!paired} />
         </View>
 
         <Text style={styles.section}>Floaters (reference)</Text>
@@ -192,33 +221,53 @@ export function DashboardScreen() {
         ))}
 
         <View style={styles.spacer} />
-        {confirmingEnd ? (
-          <View style={styles.row}>
-            <Button
-              title="Confirm end session"
-              color="red"
-              onPress={() => {
-                endSession();
-                setConfirmingEnd(false);
-                disconnect();
-              }}
-            />
-            <Button title="Cancel" onPress={() => setConfirmingEnd(false)} />
-          </View>
-        ) : (
-          <Button title="End session" onPress={() => setConfirmingEnd(true)} />
-        )}
+        {paired &&
+          (confirmingEnd ? (
+            <View style={styles.row}>
+              <Button
+                title="Confirm end session"
+                color="red"
+                onPress={() => {
+                  endSession();
+                  setConfirmingEnd(false);
+                  disconnect();
+                }}
+              />
+              <Button title="Cancel" onPress={() => setConfirmingEnd(false)} />
+            </View>
+          ) : (
+            <Button title="End session" onPress={() => setConfirmingEnd(true)} />
+          ))}
       </ScrollView>
 
       <SidePanel visible={panelOpen} onClose={() => setPanelOpen(false)}>
         <Text style={styles.panelTitle}>Options</Text>
-        <Button
-          title="Disconnect"
-          onPress={() => {
-            setPanelOpen(false);
-            disconnect();
-          }}
-        />
+        {paired ? (
+          <Button
+            title="Disconnect"
+            onPress={() => {
+              setPanelOpen(false);
+              disconnect();
+            }}
+          />
+        ) : (
+          <>
+            <Button
+              title="Scan QR Code"
+              onPress={() => {
+                setPanelOpen(false);
+                navigation.navigate("QrScan");
+              }}
+            />
+            <Button
+              title="Enter Pairing Code"
+              onPress={() => {
+                setPanelOpen(false);
+                navigation.navigate("Pairing");
+              }}
+            />
+          </>
+        )}
       </SidePanel>
     </View>
   );
@@ -243,6 +292,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   statusLine: {
+    color: "#666",
+  },
+  statusLinePaired: {
     color: "#2e7d32",
   },
   container: {
@@ -270,6 +322,9 @@ const styles = StyleSheet.create({
   chipActive: {
     backgroundColor: "#1a1a2e",
     borderColor: "#1a1a2e",
+  },
+  chipDisabled: {
+    opacity: 0.4,
   },
   chipText: {
     color: "#1a1a2e",
