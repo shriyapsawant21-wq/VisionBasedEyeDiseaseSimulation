@@ -70631,7 +70631,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VisionSimulation.DiseaseEffects.VisionEffectManager
   currentDisease: 0
   severity: 0
-  affectedVision: 0
+  affectedVision: 1
   transitionDuration: 0.5
   metamorphopsiaEffect: {fileID: 1550169593}
   centralBlurEffect: {fileID: 1550169592}
