@@ -41,6 +41,7 @@ export function PairingScreen({ navigation }: Props) {
   const [pending, setPending] = useState<PairingPayload | null>(null);
   const [sessionId, setSessionId] = useState("");
   const [pairingToken, setPairingToken] = useState("");
+  const [relayUrl, setRelayUrl] = useState(defaultRelayUrl());
 
   const busy = status === "connecting";
   const showingConnection = status === "connected" || status === "paired" || pending !== null;
@@ -59,7 +60,7 @@ export function PairingScreen({ navigation }: Props) {
     setDecodeError(null);
     setPending(payload);
     setSessionId(payload.sessionId);
-    connect(defaultRelayUrl());
+    connect(relayUrl);
   }
 
   function handleManualConnect() {
@@ -67,7 +68,7 @@ export function PairingScreen({ navigation }: Props) {
       pairRequest(sessionId.trim().toUpperCase(), pairingToken.trim());
     } else {
       setPending({ sessionId: sessionId.trim().toUpperCase(), pairingToken: pairingToken.trim() });
-      connect(defaultRelayUrl());
+      connect(relayUrl);
     }
   }
 
@@ -138,6 +139,18 @@ export function PairingScreen({ navigation }: Props) {
       ) : null}
 
       <View style={styles.manualSection}>
+        <Text style={styles.manualLabel}>Relay URL</Text>
+        <TextInput
+          style={styles.manualInput}
+          value={relayUrl}
+          onChangeText={setRelayUrl}
+          autoCapitalize="none"
+          autoCorrect={false}
+          placeholder="ws://<laptop-ip>:8787"
+          placeholderTextColor={colors.textMuted}
+          editable={!busy}
+        />
+
         <Text style={styles.manualLabel}>Enter code manually</Text>
         <View style={styles.manualRow}>
           <TextInput
@@ -147,7 +160,7 @@ export function PairingScreen({ navigation }: Props) {
             autoCapitalize="characters"
             autoCorrect={false}
             maxLength={6}
-            placeholder="Enter 6-8 digit code"
+            placeholder="Enter 6-character code"
             placeholderTextColor={colors.textMuted}
             editable={!busy}
           />

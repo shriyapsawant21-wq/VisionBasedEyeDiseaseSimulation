@@ -23,6 +23,14 @@ namespace VisionSimulation.UI
                 effectManager.SetDisease(VisionDisease.CentralBlur);
             if (Keyboard.current.digit4Key.wasPressedThisFrame)
                 effectManager.SetDisease(VisionDisease.TunnelVision);
+            if (Keyboard.current.digit5Key.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.PosteriorVitreousDetachmentRing);
+            if (Keyboard.current.digit6Key.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.PosteriorVitreousDetachmentDot);
+            if (Keyboard.current.digit7Key.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.GhostFloaters);
+            if (Keyboard.current.digit8Key.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.BlackFloaters);
 
             if (Keyboard.current.upArrowKey.wasPressedThisFrame)
                 effectManager.SetSeverity(effectManager.Severity + severityStep);

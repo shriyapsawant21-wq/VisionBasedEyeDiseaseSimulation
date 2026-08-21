@@ -19,6 +19,8 @@ namespace VisionSimulation.DiseaseEffects
         [SerializeField] private MonoBehaviour centralBlurEffect;
         [Tooltip("Assign the TunnelVisionEffect component.")]
         [SerializeField] private MonoBehaviour tunnelVisionEffect;
+        [Tooltip("Assign the FloatersEffect component.")]
+        [SerializeField] private MonoBehaviour floatersEffect;
 
         private float targetSeverity;
         private float displayedSeverity;
@@ -100,6 +102,22 @@ namespace VisionSimulation.DiseaseEffects
             ApplyEffect(metamorphopsiaEffect, currentDisease == VisionDisease.Metamorphopsia, effectiveSeverity);
             ApplyEffect(centralBlurEffect, currentDisease == VisionDisease.CentralBlur, effectiveSeverity);
             ApplyEffect(tunnelVisionEffect, currentDisease == VisionDisease.TunnelVision, effectiveSeverity);
+            bool floatersSelected = currentDisease >= VisionDisease.PosteriorVitreousDetachmentRing &&
+                                    currentDisease <= VisionDisease.BlackFloaters;
+            if (floatersEffect is FloatersEffect floaters)
+                floaters.SetFloaterType(ToFloaterType(currentDisease));
+            ApplyEffect(floatersEffect, floatersSelected, effectiveSeverity);
+        }
+
+        private static FloaterType ToFloaterType(VisionDisease disease)
+        {
+            return disease switch
+            {
+                VisionDisease.PosteriorVitreousDetachmentDot => FloaterType.PvdDot,
+                VisionDisease.GhostFloaters => FloaterType.GhostWorms,
+                VisionDisease.BlackFloaters => FloaterType.BlackDots,
+                _ => FloaterType.WeissRing
+            };
         }
 
         private static void ApplyEffect(MonoBehaviour component, bool selected, float effectiveSeverity)
