@@ -18,8 +18,9 @@ npm run dev     # or: npm run build && npm start
 ```
 
 Discovery responses are signed with `.discovery-private-key.pem`; the matching
-public key is pinned in the Unity build. Do not commit or copy the private key
-to a client device.
+public key is automatically pinned in the Unity source by `discovery:key`.
+Commit that source change and rebuild Unity after generating a new identity.
+Do not commit or copy the private key to a client device.
 
 In a second terminal, get the URL to hand out:
 

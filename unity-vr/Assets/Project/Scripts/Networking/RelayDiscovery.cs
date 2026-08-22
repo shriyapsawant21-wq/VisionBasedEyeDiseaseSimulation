@@ -57,11 +57,12 @@ namespace VisionSimulation.Networking
                     if (!VerifySignature(nonce, port, parts[3]))
                         continue;
 
-                    var builder = new UriBuilder(trustedUri)
-                    {
-                        Host = result.RemoteEndPoint.Address.ToString(),
-                        Port = port
-                    };
+                    var builder = new UriBuilder(trustedUri) { Port = port };
+                    // A wss certificate authenticates the configured hostname,
+                    // not its current LAN address. Only cleartext LAN URLs need
+                    // discovery to replace the host after a DHCP change.
+                    if (trustedUri.Scheme == "ws")
+                        builder.Host = result.RemoteEndPoint.Address.ToString();
                     return builder.Uri.AbsoluteUri.TrimEnd('/');
                 }
             }
