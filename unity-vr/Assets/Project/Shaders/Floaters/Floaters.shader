@@ -8,10 +8,7 @@ Shader "VisionSimulation/Floaters"
         _MovementSpeed("Movement Speed", Range(0.05, 1)) = 0.22
         _GhostOpacity("Ghost Opacity", Range(0, 1)) = 0.42
         _RingOpacity("Ring Opacity", Range(0, 1)) = 0.48
-        _FlashProgress("Flash Progress", Range(0, 1)) = 0
-        _FlashOrigin("Flash Origin", Vector) = (0.75, 0.5, 0, 0)
-        _FlashDirection("Flash Direction", Vector) = (-1, 0, 0, 0)
-        _FlashDistance("Flash Distance", Range(0, 1)) = 0.4
+        _WebTexture("Spider Web Texture", 2D) = "black" {}
     }
     SubShader
     {
@@ -28,9 +25,8 @@ Shader "VisionSimulation/Floaters"
 
             float _EffectEnabled, _Severity, _FloaterType, _MovementSpeed;
             float _GhostOpacity, _RingOpacity;
-            float _FlashProgress;
-            float2 _FlashOrigin, _FlashDirection;
-            float _FlashDistance;
+            TEXTURE2D(_WebTexture);
+            SAMPLER(sampler_WebTexture);
 
             float hash11(float p) { return frac(sin(p * 127.1) * 43758.5453); }
             float2 hash21(float p) { return frac(sin(float2(p * 127.1, p * 311.7)) * 43758.5453); }
@@ -82,7 +78,7 @@ Shader "VisionSimulation/Floaters"
                 float aspect = _ScreenParams.x / _ScreenParams.y;
                 float2 shapeUV = float2((uv.x - 0.5) * aspect + 0.5, uv.y);
                 float time = _Time.y * _MovementSpeed;
-                float darkMask = 0.0, lightMask = 0.0, lightCoreMask = 0.0, redMask = 0.0;
+                float darkMask = 0.0, lightMask = 0.0, whiteGlowMask = 0.0, redMask = 0.0;
 
                 if (_FloaterType < 0.5)
                 {
@@ -130,24 +126,79 @@ Shader "VisionSimulation/Floaters"
                 }
                 else if (_FloaterType < 4.5)
                 {
-                    if (_FlashProgress <= 0.0)
-                        return source;
+                    // Slow synchronized flicker: a translucent white glow in the
+                    // top-right and a fine vitreous web in the top-left.
+                    float flickerWave = 0.5 + 0.5 * sin(_Time.y * 3.35);
+                    float flicker = smoothstep(0.12, 0.76, flickerWave);
 
-                    // A straight peripheral light ray travels along its own axis.
-                    float2 flashCenter = clamp(
-                        _FlashOrigin + _FlashDirection * (_FlashProgress * _FlashDistance),
-                        float2(0.10, 0.12), float2(0.90, 0.88));
-                    flashCenter.x = (flashCenter.x - 0.5) * aspect + 0.5;
-                    float2 flash = shapeUV - flashCenter;
-                    float2 rayDirection = normalize(float2(_FlashDirection.x * aspect, _FlashDirection.y));
-                    float2 rayNormal = float2(-rayDirection.y, rayDirection.x);
-                    float distanceAlongRay = dot(flash, rayDirection);
-                    float distanceAcrossRay = abs(dot(flash, rayNormal));
-                    float rayEnds = 1.0 - smoothstep(0.30, 0.44, abs(distanceAlongRay));
-                    float width = lerp(0.032, 0.052, _Severity);
-                    float halo = (1.0 - smoothstep(0.0, width * 3.2, distanceAcrossRay)) * rayEnds;
-                    float flashEnvelope = sin(saturate(_FlashProgress) * 3.14159265);
-                    lightMask = saturate(halo * lerp(0.62, 0.88, _Severity) * flashEnvelope);
+                    // Jagged lightning bolt from the top-right toward the center.
+                    // Narrow and broad masks glow without an opaque core.
+                    float2 boltStart = float2(0.985, 0.985);
+                    float2 boltEnd = float2(0.48, 0.48);
+                    boltStart.x = (boltStart.x - 0.5) * aspect + 0.5;
+                    boltEnd.x = (boltEnd.x - 0.5) * aspect + 0.5;
+                    float2 boltDirection = normalize(boltEnd - boltStart);
+                    float2 boltNormal = float2(-boltDirection.y, boltDirection.x);
+                    float boltLength = length(boltEnd - boltStart);
+                    float2 boltDelta = shapeUV - boltStart;
+                    float distanceAlongBolt = dot(boltDelta, boltDirection);
+                    float distanceAcrossBolt = dot(boltDelta, boltNormal);
+                    float jaggedCenter = sin(distanceAlongBolt * 29.0 + 0.8) * 0.014
+                                       + sin(distanceAlongBolt * 73.0 - 0.4) * 0.006;
+                    float mainEnds = smoothstep(0.0, 0.035, distanceAlongBolt)
+                                   * (1.0 - smoothstep(boltLength - 0.055, boltLength, distanceAlongBolt));
+                    float mainDistance = abs(distanceAcrossBolt - jaggedCenter);
+
+                    float branchOneAlong = distanceAlongBolt - boltLength * 0.28;
+                    float branchOneCenter = jaggedCenter + branchOneAlong * 1.35
+                                          + sin(branchOneAlong * 59.0) * 0.006;
+                    float branchOneEnds = step(0.0, branchOneAlong)
+                                        * (1.0 - smoothstep(0.13, 0.23, branchOneAlong));
+                    float branchOneDistance = abs(distanceAcrossBolt - branchOneCenter) / 1.68;
+
+                    float branchTwoAlong = distanceAlongBolt - boltLength * 0.48;
+                    float branchTwoCenter = jaggedCenter - branchTwoAlong * 1.55
+                                          + sin(branchTwoAlong * 67.0 + 0.5) * 0.006;
+                    float branchTwoEnds = step(0.0, branchTwoAlong)
+                                        * (1.0 - smoothstep(0.12, 0.22, branchTwoAlong));
+                    float branchTwoDistance = abs(distanceAcrossBolt - branchTwoCenter) / 1.84;
+
+                    float branchThreeAlong = distanceAlongBolt - boltLength * 0.64;
+                    float branchThreeCenter = jaggedCenter + branchThreeAlong * 1.10
+                                            + sin(branchThreeAlong * 71.0 - 0.3) * 0.005;
+                    float branchThreeEnds = step(0.0, branchThreeAlong)
+                                          * (1.0 - smoothstep(0.08, 0.16, branchThreeAlong));
+                    float branchThreeDistance = abs(distanceAcrossBolt - branchThreeCenter) / 1.49;
+
+                    float boltWidth = lerp(0.0045, 0.0075, _Severity);
+                    float narrowBolt = (1.0 - smoothstep(0.0, boltWidth * 1.8, mainDistance)) * mainEnds;
+                    float broadBolt = (1.0 - smoothstep(boltWidth * 0.5, boltWidth * 10.5, mainDistance)) * mainEnds;
+                    narrowBolt = max(narrowBolt,
+                        (1.0 - smoothstep(0.0, boltWidth * 1.35, branchOneDistance)) * branchOneEnds);
+                    narrowBolt = max(narrowBolt,
+                        (1.0 - smoothstep(0.0, boltWidth * 1.25, branchTwoDistance)) * branchTwoEnds);
+                    narrowBolt = max(narrowBolt,
+                        (1.0 - smoothstep(0.0, boltWidth * 1.15, branchThreeDistance)) * branchThreeEnds);
+                    broadBolt = max(broadBolt,
+                        (1.0 - smoothstep(boltWidth * 0.5, boltWidth * 7.5, branchOneDistance)) * branchOneEnds);
+                    broadBolt = max(broadBolt,
+                        (1.0 - smoothstep(boltWidth * 0.5, boltWidth * 7.0, branchTwoDistance)) * branchTwoEnds);
+                    broadBolt = max(broadBolt,
+                        (1.0 - smoothstep(boltWidth * 0.5, boltWidth * 6.5, branchThreeDistance)) * branchThreeEnds);
+                    float glow = saturate(broadBolt * 0.76 + narrowBolt * 0.20);
+
+                    // Use the authored strand geometry as a luminance mask. The
+                    // dark preview checker is discarded, leaving only the silk.
+                    float2 webUV = float2(uv.x / 0.48, (uv.y - 0.52) / 0.48);
+                    float webBounds = step(0.0, webUV.x) * step(webUV.x, 1.0)
+                                    * step(0.0, webUV.y) * step(webUV.y, 1.0);
+                    half3 webSample = SAMPLE_TEXTURE2D(_WebTexture, sampler_WebTexture, saturate(webUV)).rgb;
+                    float webLuminance = dot(webSample, half3(0.2126, 0.7152, 0.0722));
+                    float web = smoothstep(0.085, 0.48, webLuminance) * webBounds;
+
+                    whiteGlowMask = saturate(
+                        (glow * lerp(0.48, 0.76, _Severity)
+                        + web * lerp(0.28, 0.52, _Severity)) * flicker);
                 }
                 else
                 {
@@ -171,7 +222,7 @@ Shader "VisionSimulation/Floaters"
                 source.rgb = lerp(source.rgb, half3(0,0,0), saturate(darkMask));
                 half3 flashColour = half3(1.0h, 0.97h, 0.78h);
                 source.rgb = lerp(source.rgb, flashColour, saturate(lightMask));
-                source.rgb = lerp(source.rgb, half3(1.0h, 1.0h, 0.96h), saturate(lightCoreMask));
+                source.rgb = lerp(source.rgb, half3(1.0h, 1.0h, 1.0h), saturate(whiteGlowMask));
                 float luminance = dot(source.rgb, half3(0.2126, 0.7152, 0.0722));
                 source.rgb = saturate(lerp(luminance.xxx, source.rgb, 1.08) * 1.07);
                 // Vivid blood red (#D11212 in the project's linear colour space).

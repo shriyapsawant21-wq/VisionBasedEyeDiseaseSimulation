@@ -70703,9 +70703,6 @@ MonoBehaviour:
   movementSpeed: 0.22
   ghostOpacity: 0.42
   ringOpacity: 0.48
-  flashDuration: 0.75
-  minimumFlashInterval: 1.4
-  maximumFlashInterval: 3.2
 --- !u!1001 &1550472921
 PrefabInstance:
   m_ObjectHideFlags: 0
