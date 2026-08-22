@@ -89,7 +89,7 @@ namespace VisionSimulation.UI
 
             statusText = SimpleUi.CreateText(column, "Connecting...", 30, SimpleUi.Primary);
             qrImage = SimpleUi.CreateRawImage(column, 620f);
-            qrImage.gameObject.SetActive(false);
+            qrImage.transform.parent.gameObject.SetActive(false);
 
             detailText = SimpleUi.CreateText(column, string.Empty, 26, SimpleUi.TextMuted);
 
@@ -164,12 +164,12 @@ namespace VisionSimulation.UI
             }
 
             qrImage.texture = qrTexture;
-            qrImage.gameObject.SetActive(true);
+            qrImage.transform.parent.gameObject.SetActive(true);
         }
 
         private void HideQrCode()
         {
-            qrImage.gameObject.SetActive(false);
+            qrImage.transform.parent.gameObject.SetActive(false);
             qrImage.texture = null;
             ReleaseQrTexture();
         }
