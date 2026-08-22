@@ -64,9 +64,11 @@ Shader "VisionSimulation/CentralBlur"
 
                 if (_CentralMode > 0.5)
                 {
-                    half grey = lerp(0.38h, 0.20h, _Severity);
-                    half opacity = lerp(0.72h, 0.96h, _Severity);
-                    return lerp(source, half4(grey, grey, grey, source.a), centralMask * opacity);
+                    // Scotoma colour stays opaque and constant; severity changes
+                    // only the area of lost vision through _MaskRadius.
+                    // Near-black grey (#202020 in the project's linear colour space).
+                    const half grey = 0.014444h;
+                    return lerp(source, half4(grey, grey, grey, source.a), centralMask);
                 }
 
                 if (_BlurPixels <= 0.001)

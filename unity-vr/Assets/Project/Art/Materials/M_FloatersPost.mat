@@ -26,11 +26,16 @@ Material:
     m_Ints: []
     m_Floats:
     - _EffectEnabled: 0
+    - _FlashDistance: 0.30264458
+    - _FlashProgress: 0
     - _FloaterType: 0
     - _GhostOpacity: 0.42
     - _MovementSpeed: 0.22
     - _RingOpacity: 0.48
     - _Severity: 0
-    m_Colors: []
+    m_Colors:
+    - _FlashDirection: {r: -0.68527657, g: -0.7282829, b: 0, a: 0}
+    - _FlashOffset: {r: 0.17750037, g: -0.0033327315, b: 0, a: 0}
+    - _FlashOrigin: {r: 0.84, g: 0.82, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

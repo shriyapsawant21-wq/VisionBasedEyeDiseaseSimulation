@@ -8,6 +8,10 @@ Shader "VisionSimulation/Floaters"
         _MovementSpeed("Movement Speed", Range(0.05, 1)) = 0.22
         _GhostOpacity("Ghost Opacity", Range(0, 1)) = 0.42
         _RingOpacity("Ring Opacity", Range(0, 1)) = 0.48
+        _FlashProgress("Flash Progress", Range(0, 1)) = 0
+        _FlashOrigin("Flash Origin", Vector) = (0.75, 0.5, 0, 0)
+        _FlashDirection("Flash Direction", Vector) = (-1, 0, 0, 0)
+        _FlashDistance("Flash Distance", Range(0, 1)) = 0.4
     }
     SubShader
     {
@@ -24,6 +28,9 @@ Shader "VisionSimulation/Floaters"
 
             float _EffectEnabled, _Severity, _FloaterType, _MovementSpeed;
             float _GhostOpacity, _RingOpacity;
+            float _FlashProgress;
+            float2 _FlashOrigin, _FlashDirection;
+            float _FlashDistance;
 
             float hash11(float p) { return frac(sin(p * 127.1) * 43758.5453); }
             float2 hash21(float p) { return frac(sin(float2(p * 127.1, p * 311.7)) * 43758.5453); }
@@ -75,7 +82,7 @@ Shader "VisionSimulation/Floaters"
                 float aspect = _ScreenParams.x / _ScreenParams.y;
                 float2 shapeUV = float2((uv.x - 0.5) * aspect + 0.5, uv.y);
                 float time = _Time.y * _MovementSpeed;
-                float darkMask = 0.0, lightMask = 0.0, redMask = 0.0;
+                float darkMask = 0.0, lightMask = 0.0, lightCoreMask = 0.0, redMask = 0.0;
 
                 if (_FloaterType < 0.5)
                 {
@@ -123,41 +130,52 @@ Shader "VisionSimulation/Floaters"
                 }
                 else if (_FloaterType < 4.5)
                 {
-                    // A gaze-locked photopsia: always present, with a bright
-                    // core and broad luminous halo rather than a white overlay.
-                    float2 center = float2(0.70, 0.64);
-                    center.x = (center.x - 0.5) * aspect + 0.5;
-                    float radius = lerp(0.075, 0.17, _Severity);
-                    float distanceToFlash = length(shapeUV - center);
-                    float halo = 1.0 - smoothstep(radius * 0.45, radius * 1.75, distanceToFlash);
-                    float core = 1.0 - smoothstep(0.0, radius * 0.42, distanceToFlash);
-                    float steadyPulse = 0.90 + 0.10 * sin(_Time.y * 4.2);
-                    lightMask = saturate((halo * 0.68 + core * 0.72) * steadyPulse);
+                    if (_FlashProgress <= 0.0)
+                        return source;
+
+                    // A straight peripheral light ray travels along its own axis.
+                    float2 flashCenter = clamp(
+                        _FlashOrigin + _FlashDirection * (_FlashProgress * _FlashDistance),
+                        float2(0.10, 0.12), float2(0.90, 0.88));
+                    flashCenter.x = (flashCenter.x - 0.5) * aspect + 0.5;
+                    float2 flash = shapeUV - flashCenter;
+                    float2 rayDirection = normalize(float2(_FlashDirection.x * aspect, _FlashDirection.y));
+                    float2 rayNormal = float2(-rayDirection.y, rayDirection.x);
+                    float distanceAlongRay = dot(flash, rayDirection);
+                    float distanceAcrossRay = abs(dot(flash, rayNormal));
+                    float rayEnds = 1.0 - smoothstep(0.30, 0.44, abs(distanceAlongRay));
+                    float width = lerp(0.032, 0.052, _Severity);
+                    float halo = (1.0 - smoothstep(0.0, width * 3.2, distanceAcrossRay)) * rayEnds;
+                    float flashEnvelope = sin(saturate(_FlashProgress) * 3.14159265);
+                    lightMask = saturate(halo * lerp(0.62, 0.88, _Severity) * flashEnvelope);
                 }
                 else
                 {
                     // Two softly feathered retinal blood streaks. Their curved
                     // center lines are procedural so no texture stretches in XR.
-                    float2 first = shapeUV - float2(0.48, 0.56);
-                    float firstCurve = sin(first.x * 12.0 + 0.4) * 0.045 - first.x * 0.20;
-                    float firstBody = 1.0 - smoothstep(0.010, 0.032, abs(first.y - firstCurve));
-                    float firstEnds = 1.0 - smoothstep(0.25, 0.36, abs(first.x));
+                    float2 first = shapeUV - float2(0.34, 0.60);
+                    float firstCurve = sin(first.y * 18.0 + 0.4) * 0.020 + first.y * 0.16;
+                    float firstBody = 1.0 - smoothstep(0.0030, 0.0105, abs(first.x - firstCurve));
+                    float firstEnds = 1.0 - smoothstep(0.13, 0.21, abs(first.y));
 
-                    float2 second = shapeUV - float2(0.58, 0.42);
-                    float secondCurve = sin(second.x * 10.0 - 0.8) * 0.035 + second.x * 0.16;
-                    float secondBody = 1.0 - smoothstep(0.008, 0.028, abs(second.y - secondCurve));
-                    float secondEnds = 1.0 - smoothstep(0.20, 0.31, abs(second.x));
+                    float2 second = shapeUV - float2(0.70, 0.42);
+                    float secondCurve = second.y * second.y * 0.55 - second.y * 0.09
+                                      + sin(second.y * 11.0 - 0.8) * 0.008;
+                    float secondBody = 1.0 - smoothstep(0.0028, 0.0095, abs(second.x - secondCurve));
+                    float secondEnds = 1.0 - smoothstep(0.11, 0.19, abs(second.y));
                     float secondVisibility = smoothstep(0.38, 0.72, _Severity);
                     redMask = saturate(firstBody * firstEnds + secondBody * secondEnds * secondVisibility);
-                    redMask *= lerp(0.48, 0.82, _Severity);
+                    redMask *= lerp(0.78, 0.98, _Severity);
                 }
 
                 source.rgb = lerp(source.rgb, half3(0,0,0), saturate(darkMask));
-                half3 flashColour = half3(1.0h, 0.98h, 0.68h);
+                half3 flashColour = half3(1.0h, 0.97h, 0.78h);
                 source.rgb = lerp(source.rgb, flashColour, saturate(lightMask));
-                source.rgb = lerp(source.rgb, half3(0.48h, 0.015h, 0.02h), saturate(redMask));
+                source.rgb = lerp(source.rgb, half3(1.0h, 1.0h, 0.96h), saturate(lightCoreMask));
                 float luminance = dot(source.rgb, half3(0.2126, 0.7152, 0.0722));
                 source.rgb = saturate(lerp(luminance.xxx, source.rgb, 1.08) * 1.07);
+                // Vivid blood red (#D11212 in the project's linear colour space).
+                source.rgb = lerp(source.rgb, half3(0.637597h, 0.006049h, 0.006049h), saturate(redMask));
                 return source;
             }
             ENDHLSL

@@ -64,7 +64,10 @@ namespace VisionSimulation.DiseaseEffects
             float appliedSeverity = effectEnabled ? severity : 0f;
             centralBlurMaterial.SetFloat(EnabledId, effectEnabled ? 1f : 0f);
             centralBlurMaterial.SetFloat(SeverityId, appliedSeverity);
-            centralBlurMaterial.SetFloat(MaskRadiusId, severeMaskRadius * Mathf.Lerp(0.65f, 1f, appliedSeverity));
+            float maskRadius = mode == CentralEffectMode.Scotoma
+                ? severeMaskRadius * Mathf.Lerp(0.22f, 0.68f, appliedSeverity)
+                : severeMaskRadius * Mathf.Lerp(0.65f, 1f, appliedSeverity);
+            centralBlurMaterial.SetFloat(MaskRadiusId, maskRadius);
             centralBlurMaterial.SetFloat(FeatherWidthId, featherWidth);
             centralBlurMaterial.SetFloat(BlurPixelsId, maximumBlurPixels * appliedSeverity);
             centralBlurMaterial.SetVector(CenterOffsetId, centerOffset);
