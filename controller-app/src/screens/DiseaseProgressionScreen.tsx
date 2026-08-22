@@ -28,7 +28,7 @@ function formatClock(seconds: number): string {
  */
 export function DiseaseProgressionScreen({ route, navigation }: Props) {
   const program = findProgram(route.params.programKey);
-  const { status, startDiseaseSimulation, pauseProgression } = useRelayConnector();
+  const { status, startDiseaseSimulation, pauseProgression, reset } = useRelayConnector();
 
   const [elapsed, setElapsed] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -99,7 +99,13 @@ export function DiseaseProgressionScreen({ route, navigation }: Props) {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
+        <Pressable
+          onPress={() => {
+            reset();
+            navigation.goBack();
+          }}
+          hitSlop={12}
+        >
           <Text style={styles.backLabel}>‹ Back</Text>
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>
