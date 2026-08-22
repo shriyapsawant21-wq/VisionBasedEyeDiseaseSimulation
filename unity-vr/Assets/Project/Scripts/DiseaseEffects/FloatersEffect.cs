@@ -7,7 +7,9 @@ namespace VisionSimulation.DiseaseEffects
         WeissRing = 0,
         PvdDot = 1,
         GhostWorms = 2,
-        BlackDots = 3
+        BlackDots = 3,
+        RetinalFlash = 4,
+        RedStreaks = 5
     }
 
     public sealed class FloatersEffect : MonoBehaviour, IVisionEffect

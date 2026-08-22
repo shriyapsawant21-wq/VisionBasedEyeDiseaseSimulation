@@ -22,6 +22,13 @@ export const DISEASE_INFO: Record<Disease, DiseaseInfo> = {
     symptomName: "Central Blurring",
     severityLabel: "Blur Intensity",
   },
+  CENTRAL_SCOTOMA: {
+    disease: "CENTRAL_SCOTOMA",
+    shortLabel: "CNVM/DME/CME",
+    clinicalLabel: "CNVM / DME / CME",
+    symptomName: "Central Scotoma",
+    severityLabel: "Scotoma Size",
+  },
   METAMORPHOPSIA: {
     disease: "METAMORPHOPSIA",
     shortLabel: "CSCR",
@@ -64,6 +71,27 @@ export const DISEASE_INFO: Record<Disease, DiseaseInfo> = {
     symptomName: "Ghost Worms",
     severityLabel: "Worm Count",
   },
+  RD_FLASH: {
+    disease: "RD_FLASH",
+    shortLabel: "RD",
+    clinicalLabel: "Retinal Detachment (RD)",
+    symptomName: "Persistent Light Flash",
+    severityLabel: "Flash Size",
+  },
+  CURTAIN_SIGN: {
+    disease: "CURTAIN_SIGN",
+    shortLabel: "RD",
+    clinicalLabel: "Retinal Detachment (RD)",
+    symptomName: "Curtain Sign",
+    severityLabel: "Curtain Coverage",
+  },
+  RED_FLOATERS: {
+    disease: "RED_FLOATERS",
+    shortLabel: "RD",
+    clinicalLabel: "Retinal Detachment (RD)",
+    symptomName: "Blood Streaks",
+    severityLabel: "Streak Intensity",
+  },
 };
 
 /**
@@ -83,14 +111,13 @@ export interface DiseaseEntry {
 }
 
 export const DISEASE_ENTRIES: DiseaseEntry[] = [
-  { key: "CNVM", cardLabel: "CNVM/DME/CME", variants: ["CENTRAL_BLUR"] },
+  { key: "CNVM", cardLabel: "CNVM/DME/CME", variants: ["CENTRAL_BLUR", "CENTRAL_SCOTOMA"] },
   { key: "CSCR", cardLabel: "CSCR", variants: ["METAMORPHOPSIA"] },
   { key: "RP", cardLabel: "RP", variants: ["TUNNEL_VISION"] },
   {
     key: "RD",
     cardLabel: "RD",
-    variants: ["RETINAL_DETACHMENT"],
-    inertVariants: ["Flashes and Curtains"],
+    variants: ["RETINAL_DETACHMENT", "RD_FLASH", "CURTAIN_SIGN", "RED_FLOATERS"],
   },
 ];
 

@@ -29,7 +29,7 @@ export function DiseaseControlScreen({ route, navigation }: Props) {
   const [localSeverity, setLocalSeverity] = useState(controllerState?.severity ?? 0.25);
 
   const info = DISEASE_INFO[activeDisease];
-  // PVD is one card covering two floater variants; everything else has one
+  // Several disease cards expose multiple simulated symptom variants.
   const entry = ALL_ENTRIES.find((e) => e.variants.includes(activeDisease));
   const variants = entry?.variants ?? [activeDisease];
   const inertVariants = entry?.inertVariants ?? [];
@@ -220,6 +220,7 @@ const styles = StyleSheet.create({
   },
   variantRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm,
     marginTop: spacing.md,
   },

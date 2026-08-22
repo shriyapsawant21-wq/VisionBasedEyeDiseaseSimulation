@@ -75,7 +75,7 @@ Shader "VisionSimulation/Floaters"
                 float aspect = _ScreenParams.x / _ScreenParams.y;
                 float2 shapeUV = float2((uv.x - 0.5) * aspect + 0.5, uv.y);
                 float time = _Time.y * _MovementSpeed;
-                float darkMask = 0.0, lightMask = 0.0;
+                float darkMask = 0.0, lightMask = 0.0, redMask = 0.0;
 
                 if (_FloaterType < 0.5)
                 {
@@ -110,7 +110,7 @@ Shader "VisionSimulation/Floaters"
                     }
                     lightMask *= _GhostOpacity * 0.72;
                 }
-                else
+                else if (_FloaterType < 3.5)
                 {
                     [unroll] for (int i = 0; i < 28; i++)
                     {
@@ -121,9 +121,41 @@ Shader "VisionSimulation/Floaters"
                         darkMask = max(darkMask, softDot(shapeUV, c, radius, 0.002) * visible);
                     }
                 }
+                else if (_FloaterType < 4.5)
+                {
+                    // A gaze-locked photopsia: always present, with a bright
+                    // core and broad luminous halo rather than a white overlay.
+                    float2 center = float2(0.70, 0.64);
+                    center.x = (center.x - 0.5) * aspect + 0.5;
+                    float radius = lerp(0.075, 0.17, _Severity);
+                    float distanceToFlash = length(shapeUV - center);
+                    float halo = 1.0 - smoothstep(radius * 0.45, radius * 1.75, distanceToFlash);
+                    float core = 1.0 - smoothstep(0.0, radius * 0.42, distanceToFlash);
+                    float steadyPulse = 0.90 + 0.10 * sin(_Time.y * 4.2);
+                    lightMask = saturate((halo * 0.68 + core * 0.72) * steadyPulse);
+                }
+                else
+                {
+                    // Two softly feathered retinal blood streaks. Their curved
+                    // center lines are procedural so no texture stretches in XR.
+                    float2 first = shapeUV - float2(0.48, 0.56);
+                    float firstCurve = sin(first.x * 12.0 + 0.4) * 0.045 - first.x * 0.20;
+                    float firstBody = 1.0 - smoothstep(0.010, 0.032, abs(first.y - firstCurve));
+                    float firstEnds = 1.0 - smoothstep(0.25, 0.36, abs(first.x));
+
+                    float2 second = shapeUV - float2(0.58, 0.42);
+                    float secondCurve = sin(second.x * 10.0 - 0.8) * 0.035 + second.x * 0.16;
+                    float secondBody = 1.0 - smoothstep(0.008, 0.028, abs(second.y - secondCurve));
+                    float secondEnds = 1.0 - smoothstep(0.20, 0.31, abs(second.x));
+                    float secondVisibility = smoothstep(0.38, 0.72, _Severity);
+                    redMask = saturate(firstBody * firstEnds + secondBody * secondEnds * secondVisibility);
+                    redMask *= lerp(0.48, 0.82, _Severity);
+                }
 
                 source.rgb = lerp(source.rgb, half3(0,0,0), saturate(darkMask));
-                source.rgb = lerp(source.rgb, half3(1,1,1), saturate(lightMask));
+                half3 flashColour = half3(1.0h, 0.98h, 0.68h);
+                source.rgb = lerp(source.rgb, flashColour, saturate(lightMask));
+                source.rgb = lerp(source.rgb, half3(0.48h, 0.015h, 0.02h), saturate(redMask));
                 float luminance = dot(source.rgb, half3(0.2126, 0.7152, 0.0722));
                 source.rgb = saturate(lerp(luminance.xxx, source.rgb, 1.08) * 1.07);
                 return source;

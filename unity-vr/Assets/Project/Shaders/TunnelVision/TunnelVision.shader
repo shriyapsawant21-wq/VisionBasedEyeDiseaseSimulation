@@ -9,6 +9,7 @@ Shader "VisionSimulation/TunnelVision"
         _PeripheralDarkness("Peripheral Darkness", Range(0, 1)) = 0
         _PeripheralSaturation("Peripheral Saturation", Range(0, 1)) = 1
         _CenterOffset("Center Offset", Vector) = (0, 0, 0, 0)
+        _TunnelMode("Tunnel Mode", Float) = 0
     }
 
     SubShader
@@ -36,6 +37,7 @@ Shader "VisionSimulation/TunnelVision"
             float _PeripheralDarkness;
             float _PeripheralSaturation;
             float2 _CenterOffset;
+            float _TunnelMode;
 
             half4 Frag(Varyings input) : SV_Target
             {
@@ -45,6 +47,21 @@ Shader "VisionSimulation/TunnelVision"
 
                 if (_EffectEnabled < 0.5 || _Severity <= 0.0001)
                     return source;
+
+                if (_TunnelMode > 0.5)
+                {
+                    float advancingEdge = lerp(0.015, 1.04, _Severity);
+                    float unevenEdge = advancingEdge
+                        + sin(uv.y * 17.0 + 0.7) * 0.018
+                        + sin(uv.y * 31.0 - 1.1) * 0.009;
+                    float curtain = 1.0 - smoothstep(unevenEdge - 0.018, unevenEdge + 0.018, uv.x);
+                    float leftEye = 1.0;
+                    #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED) || defined(UNITY_SINGLE_PASS_STEREO)
+                        leftEye = 1.0 - saturate((float)unity_StereoEyeIndex);
+                    #endif
+                    source.rgb = lerp(source.rgb, half3(0, 0, 0), curtain * leftEye);
+                    return source;
+                }
 
                 float2 centered = uv - (float2(0.5, 0.5) + _CenterOffset);
                 centered.x *= _ScreenParams.x / _ScreenParams.y;

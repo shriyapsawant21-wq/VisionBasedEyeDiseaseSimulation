@@ -100,10 +100,29 @@ namespace VisionSimulation.DiseaseEffects
         private void ApplyState(float effectiveSeverity)
         {
             ApplyEffect(metamorphopsiaEffect, currentDisease == VisionDisease.Metamorphopsia, effectiveSeverity);
-            ApplyEffect(centralBlurEffect, currentDisease == VisionDisease.CentralBlur, effectiveSeverity);
-            ApplyEffect(tunnelVisionEffect, currentDisease == VisionDisease.TunnelVision, effectiveSeverity);
-            bool floatersSelected = currentDisease >= VisionDisease.PosteriorVitreousDetachmentRing &&
-                                    currentDisease <= VisionDisease.BlackFloaters;
+
+            if (centralBlurEffect is CentralBlurEffect central)
+                central.SetMode(currentDisease == VisionDisease.CentralScotoma
+                    ? CentralEffectMode.Scotoma
+                    : CentralEffectMode.Blur);
+            bool centralSelected = currentDisease == VisionDisease.CentralBlur ||
+                                   currentDisease == VisionDisease.CentralScotoma;
+            ApplyEffect(centralBlurEffect, centralSelected, effectiveSeverity);
+
+            if (tunnelVisionEffect is TunnelVisionEffect tunnel)
+                tunnel.SetMode(currentDisease == VisionDisease.CurtainSign
+                    ? TunnelEffectMode.CurtainSign
+                    : TunnelEffectMode.TunnelVision);
+            bool tunnelSelected = currentDisease == VisionDisease.TunnelVision ||
+                                  currentDisease == VisionDisease.CurtainSign;
+            ApplyEffect(tunnelVisionEffect, tunnelSelected, effectiveSeverity);
+
+            bool floatersSelected = currentDisease == VisionDisease.PosteriorVitreousDetachmentRing ||
+                                    currentDisease == VisionDisease.PosteriorVitreousDetachmentDot ||
+                                    currentDisease == VisionDisease.GhostFloaters ||
+                                    currentDisease == VisionDisease.BlackFloaters ||
+                                    currentDisease == VisionDisease.RetinalDetachmentFlash ||
+                                    currentDisease == VisionDisease.RedFloaters;
             if (floatersEffect is FloatersEffect floaters)
                 floaters.SetFloaterType(ToFloaterType(currentDisease));
             ApplyEffect(floatersEffect, floatersSelected, effectiveSeverity);
@@ -116,6 +135,8 @@ namespace VisionSimulation.DiseaseEffects
                 VisionDisease.PosteriorVitreousDetachmentDot => FloaterType.PvdDot,
                 VisionDisease.GhostFloaters => FloaterType.GhostWorms,
                 VisionDisease.BlackFloaters => FloaterType.BlackDots,
+                VisionDisease.RetinalDetachmentFlash => FloaterType.RetinalFlash,
+                VisionDisease.RedFloaters => FloaterType.RedStreaks,
                 _ => FloaterType.WeissRing
             };
         }

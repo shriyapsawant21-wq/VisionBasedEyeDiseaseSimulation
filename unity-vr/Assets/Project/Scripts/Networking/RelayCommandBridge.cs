@@ -219,6 +219,18 @@ namespace VisionSimulation.Networking
                 case RelayProtocol.DiseaseRetinalDetachment:
                     disease = VisionDisease.BlackFloaters;
                     return true;
+                case RelayProtocol.DiseaseCentralScotoma:
+                    disease = VisionDisease.CentralScotoma;
+                    return true;
+                case RelayProtocol.DiseaseRetinalDetachmentFlash:
+                    disease = VisionDisease.RetinalDetachmentFlash;
+                    return true;
+                case RelayProtocol.DiseaseCurtainSign:
+                    disease = VisionDisease.CurtainSign;
+                    return true;
+                case RelayProtocol.DiseaseRedFloaters:
+                    disease = VisionDisease.RedFloaters;
+                    return true;
                 default:
                     disease = VisionDisease.None;
                     return false;
@@ -250,6 +262,18 @@ namespace VisionSimulation.Networking
                     return true;
                 case VisionDisease.BlackFloaters:
                     wireValue = RelayProtocol.DiseaseRetinalDetachment;
+                    return true;
+                case VisionDisease.CentralScotoma:
+                    wireValue = RelayProtocol.DiseaseCentralScotoma;
+                    return true;
+                case VisionDisease.RetinalDetachmentFlash:
+                    wireValue = RelayProtocol.DiseaseRetinalDetachmentFlash;
+                    return true;
+                case VisionDisease.CurtainSign:
+                    wireValue = RelayProtocol.DiseaseCurtainSign;
+                    return true;
+                case VisionDisease.RedFloaters:
+                    wireValue = RelayProtocol.DiseaseRedFloaters;
                     return true;
                 default:
                     wireValue = null;

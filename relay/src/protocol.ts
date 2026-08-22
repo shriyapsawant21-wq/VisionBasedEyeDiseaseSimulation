@@ -24,6 +24,10 @@ export const DiseaseEnum = z.enum([
   "PVD_WEISS_RING",
   "PVD_DOT",
   "GHOST_FLOATERS",
+  "CENTRAL_SCOTOMA",
+  "RD_FLASH",
+  "CURTAIN_SIGN",
+  "RED_FLOATERS",
 ]);
 
 export const ComparisonEnum = z.enum(["NORMAL", "AFFECTED"]);

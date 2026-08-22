@@ -31,6 +31,14 @@ namespace VisionSimulation.UI
                 effectManager.SetDisease(VisionDisease.GhostFloaters);
             if (Keyboard.current.digit8Key.wasPressedThisFrame)
                 effectManager.SetDisease(VisionDisease.BlackFloaters);
+            if (Keyboard.current.sKey.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.CentralScotoma);
+            if (Keyboard.current.fKey.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.RetinalDetachmentFlash);
+            if (Keyboard.current.cKey.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.CurtainSign);
+            if (Keyboard.current.bKey.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.RedFloaters);
 
             if (Keyboard.current.upArrowKey.wasPressedThisFrame)
                 effectManager.SetSeverity(effectManager.Severity + severityStep);

@@ -8,6 +8,7 @@ Shader "VisionSimulation/CentralBlur"
         _FeatherWidth("Feather Width", Range(0.001, 0.5)) = 0.18
         _BlurPixels("Blur Pixels", Range(0, 20)) = 0
         _CenterOffset("Center Offset", Vector) = (0, 0, 0, 0)
+        _CentralMode("Central Mode", Float) = 0
     }
 
     SubShader
@@ -34,6 +35,7 @@ Shader "VisionSimulation/CentralBlur"
             float _FeatherWidth;
             float _BlurPixels;
             float2 _CenterOffset;
+            float _CentralMode;
 
             half4 SampleSource(float2 uv)
             {
@@ -46,14 +48,29 @@ Shader "VisionSimulation/CentralBlur"
                 float2 uv = input.texcoord;
                 half4 source = SampleSource(uv);
 
-                if (_EffectEnabled < 0.5 || _Severity <= 0.0001 || _BlurPixels <= 0.001)
+                if (_EffectEnabled < 0.5 || _Severity <= 0.0001)
                     return source;
 
                 float2 center = float2(0.5, 0.5) + _CenterOffset;
                 float2 centered = uv - center;
                 centered.x *= _ScreenParams.x / _ScreenParams.y;
                 float radialDistance = length(centered) * 2.0;
-                float centralMask = 1.0 - smoothstep(_MaskRadius, _MaskRadius + _FeatherWidth, radialDistance);
+                float angle = atan2(centered.y, centered.x);
+                float irregularity = 1.0 + 0.10 * sin(angle * 3.0 + 0.8)
+                                          + 0.07 * sin(angle * 5.0 - 1.3)
+                                          + 0.04 * cos(angle * 7.0 + 0.2);
+                float maskRadius = _CentralMode > 0.5 ? _MaskRadius * irregularity : _MaskRadius;
+                float centralMask = 1.0 - smoothstep(maskRadius, maskRadius + _FeatherWidth, radialDistance);
+
+                if (_CentralMode > 0.5)
+                {
+                    half grey = lerp(0.38h, 0.20h, _Severity);
+                    half opacity = lerp(0.72h, 0.96h, _Severity);
+                    return lerp(source, half4(grey, grey, grey, source.a), centralMask * opacity);
+                }
+
+                if (_BlurPixels <= 0.001)
+                    return source;
 
                 float2 texel = 1.0 / _ScreenParams.xy;
                 float2 radius = texel * _BlurPixels;

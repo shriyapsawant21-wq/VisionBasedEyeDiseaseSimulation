@@ -50,6 +50,10 @@ namespace VisionSimulation.Protocol
         public const string DiseasePvdWeissRing = "PVD_WEISS_RING";
         public const string DiseasePvdDot = "PVD_DOT";
         public const string DiseaseGhostFloaters = "GHOST_FLOATERS";
+        public const string DiseaseCentralScotoma = "CENTRAL_SCOTOMA";
+        public const string DiseaseRetinalDetachmentFlash = "RD_FLASH";
+        public const string DiseaseCurtainSign = "CURTAIN_SIGN";
+        public const string DiseaseRedFloaters = "RED_FLOATERS";
 
         public const string ComparisonNormal = "NORMAL";
         public const string ComparisonAffected = "AFFECTED";

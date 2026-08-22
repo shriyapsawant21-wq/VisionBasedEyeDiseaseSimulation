@@ -142,7 +142,7 @@ payload — it holds no simulation state.
 
 | Type | Payload | Meaning |
 |---|---|---|
-| `SET_DISEASE` | `{ "disease": "METAMORPHOPSIA" or "CENTRAL_BLUR" or "TUNNEL_VISION" }` | Select which condition to simulate. |
+| `SET_DISEASE` | `{ "disease": DiseaseEnum }` | Select which condition or symptom to simulate, including central scotoma, RD flash, curtain sign, and red floaters. |
 | `SET_SEVERITY` | `{ "severity": 0.0 to 1.0 }` | Intensity. Values outside 0–1 are rejected, not clamped. |
 | `SET_COMPARISON` | `{ "comparison": "NORMAL" or "AFFECTED" }` | Toggle between unaffected and affected vision. |
 | `START_PROGRESSION` | `{ "durationSeconds": >0 and <=600 }` | Ramp severity automatically over this many seconds. |

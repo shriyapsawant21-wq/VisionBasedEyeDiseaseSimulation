@@ -163,7 +163,11 @@
                     "RETINAL_DETACHMENT",
                     "PVD_WEISS_RING",
                     "PVD_DOT",
-                    "GHOST_FLOATERS"
+                    "GHOST_FLOATERS",
+                    "CENTRAL_SCOTOMA",
+                    "RD_FLASH",
+                    "CURTAIN_SIGN",
+                    "RED_FLOATERS"
                   ]
                 }
               },

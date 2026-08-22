@@ -2,6 +2,12 @@ using UnityEngine;
 
 namespace VisionSimulation.DiseaseEffects
 {
+    public enum CentralEffectMode
+    {
+        Blur = 0,
+        Scotoma = 1
+    }
+
     public sealed class CentralBlurEffect : MonoBehaviour, IVisionEffect
     {
         [SerializeField] private Material centralBlurMaterial;
@@ -16,9 +22,17 @@ namespace VisionSimulation.DiseaseEffects
         private static readonly int FeatherWidthId = Shader.PropertyToID("_FeatherWidth");
         private static readonly int BlurPixelsId = Shader.PropertyToID("_BlurPixels");
         private static readonly int CenterOffsetId = Shader.PropertyToID("_CenterOffset");
+        private static readonly int ModeId = Shader.PropertyToID("_CentralMode");
 
         private bool effectEnabled;
         private float severity;
+        private CentralEffectMode mode;
+
+        public void SetMode(CentralEffectMode value)
+        {
+            mode = value;
+            ApplyMaterialProperties();
+        }
 
         public void SetEnabled(bool isEnabled)
         {
@@ -54,6 +68,7 @@ namespace VisionSimulation.DiseaseEffects
             centralBlurMaterial.SetFloat(FeatherWidthId, featherWidth);
             centralBlurMaterial.SetFloat(BlurPixelsId, maximumBlurPixels * appliedSeverity);
             centralBlurMaterial.SetVector(CenterOffsetId, centerOffset);
+            centralBlurMaterial.SetFloat(ModeId, (float)mode);
         }
     }
 }
