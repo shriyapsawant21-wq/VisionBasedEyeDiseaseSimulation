@@ -192,7 +192,11 @@ namespace VisionSimulation.Protocol
     [Serializable]
     public sealed class StartDiseaseSimulationPayload
     {
-        public string disease;
+        /// <summary>
+        /// A DiseaseProgramEnum value (RP, RRD, ...), not a DiseaseEnum one -
+        /// these name a scripted timeline, not a single effect.
+        /// </summary>
+        public string program;
         public float durationSeconds;
     }
 
@@ -200,6 +204,18 @@ namespace VisionSimulation.Protocol
     public sealed class StartDiseaseSimulationMessage : RelayEnvelope
     {
         public StartDiseaseSimulationPayload payload;
+    }
+
+    [Serializable]
+    public sealed class PauseProgressionPayload
+    {
+        public bool paused;
+    }
+
+    [Serializable]
+    public sealed class PauseProgressionMessage : RelayEnvelope
+    {
+        public PauseProgressionPayload payload;
     }
 
     [Serializable]

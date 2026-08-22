@@ -10,7 +10,7 @@ import { DiseaseControlScreen } from "../screens/DiseaseControlScreen";
 import { DiseaseProgressionScreen } from "../screens/DiseaseProgressionScreen";
 import { ConnectionLostScreen } from "../screens/ConnectionLostScreen";
 import { useRelayConnector } from "../useRelayConnector";
-import type { Disease } from "../../../relay/src/protocol";
+import type { Disease, DiseaseProgram } from "../../../relay/src/protocol";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -19,7 +19,7 @@ export type RootStackParamList = {
   Pairing: undefined;
   FloaterList: undefined;
   DiseaseControl: { disease: Disease };
-  DiseaseProgression: { programKey: string };
+  DiseaseProgression: { programKey: DiseaseProgram };
   ConnectionLost: undefined;
 };
 

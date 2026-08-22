@@ -1,1 +1,1 @@
-{ "v": 1, "type": "PAUSE_PROGRESSION", "seq": 14, "timestamp": 1787234105123, "payload": {} }
+{ "v": 1, "type": "PAUSE_PROGRESSION", "seq": 14, "timestamp": 1787234105123, "payload": { "paused": true } }

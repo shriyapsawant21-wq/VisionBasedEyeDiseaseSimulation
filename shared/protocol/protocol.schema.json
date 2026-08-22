@@ -167,7 +167,8 @@
                     "CENTRAL_SCOTOMA",
                     "RD_FLASH",
                     "CURTAIN_SIGN",
-                    "RED_FLOATERS"
+                    "RED_FLOATERS",
+                    "BLOOD_STREAK"
                   ]
                 }
               },
@@ -322,11 +323,31 @@
             },
             "type": {
               "type": "string",
-              "const": "PAUSE_PROGRESSION"
+              "const": "START_DISEASE_SIMULATION"
             },
             "payload": {
               "type": "object",
-              "properties": {},
+              "properties": {
+                "program": {
+                  "type": "string",
+                  "enum": [
+                    "RP",
+                    "RRD",
+                    "CSCR",
+                    "DR_DME",
+                    "CNVM"
+                  ]
+                },
+                "durationSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 600
+                }
+              },
+              "required": [
+                "program",
+                "durationSeconds"
+              ],
               "additionalProperties": false
             }
           },
@@ -334,7 +355,46 @@
             "v",
             "seq",
             "timestamp",
-            "type"
+            "type",
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "v": {
+              "$ref": "#/anyOf/0/properties/v"
+            },
+            "seq": {
+              "$ref": "#/anyOf/0/properties/seq"
+            },
+            "timestamp": {
+              "$ref": "#/anyOf/0/properties/timestamp"
+            },
+            "type": {
+              "type": "string",
+              "const": "PAUSE_PROGRESSION"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "paused": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "paused"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "v",
+            "seq",
+            "timestamp",
+            "type",
+            "payload"
           ],
           "additionalProperties": false
         },
@@ -530,7 +590,7 @@
                   "$ref": "#/anyOf/5/properties/payload/properties/comparison"
                 },
                 "scene": {
-                  "$ref": "#/anyOf/8/properties/payload/properties/scene"
+                  "$ref": "#/anyOf/9/properties/payload/properties/scene"
                 }
               },
               "required": [

@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RelayConnector, type ControllerState } from "./connector";
-import type { Disease, Comparison } from "../../relay/src/protocol";
+import type { Disease, DiseaseProgram, Comparison } from "../../relay/src/protocol";
 
 // "sessionLost" is distinct from "disconnected": it means the socket closed
 // (or the relay reported the peer left) while we were paired and the user
@@ -27,7 +27,8 @@ export interface RelayConnectorContextValue {
   setSeverity: (severity: number) => void;
   setComparison: (comparison: Comparison) => void;
   startProgression: (durationSeconds: number) => void;
-  pauseProgression: () => void;
+  startDiseaseSimulation: (program: DiseaseProgram, durationSeconds: number) => void;
+  pauseProgression: (paused?: boolean) => void;
   recenter: () => void;
   reset: () => void;
   endSession: () => void;
@@ -105,7 +106,9 @@ export function RelayConnectorProvider({ children }: { children: React.ReactNode
       setSeverity: (severity) => connectorRef.current?.setSeverity(severity),
       setComparison: (comparison) => connectorRef.current?.setComparison(comparison),
       startProgression: (durationSeconds) => connectorRef.current?.startProgression(durationSeconds),
-      pauseProgression: () => connectorRef.current?.pauseProgression(),
+      startDiseaseSimulation: (program, durationSeconds) =>
+        connectorRef.current?.startDiseaseSimulation(program, durationSeconds),
+      pauseProgression: (paused) => connectorRef.current?.pauseProgression(paused),
       recenter: () => connectorRef.current?.recenter(),
       reset: () => connectorRef.current?.reset(),
       endSession: () => connectorRef.current?.endSession(),

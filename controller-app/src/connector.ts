@@ -1,6 +1,7 @@
 import {
   PROTOCOL_VERSION,
   type Disease,
+  type DiseaseProgram,
   type Comparison,
 } from "../../relay/src/protocol";
 
@@ -81,8 +82,13 @@ export class RelayConnector {
     this.send("START_PROGRESSION", { durationSeconds });
   }
 
-  pauseProgression(): void {
-    this.send("PAUSE_PROGRESSION", {});
+  /** Plays a scripted program on the headset from the start. */
+  startDiseaseSimulation(program: DiseaseProgram, durationSeconds: number): void {
+    this.send("START_DISEASE_SIMULATION", { program, durationSeconds });
+  }
+
+  pauseProgression(paused = true): void {
+    this.send("PAUSE_PROGRESSION", { paused });
   }
 
   recenter(): void {

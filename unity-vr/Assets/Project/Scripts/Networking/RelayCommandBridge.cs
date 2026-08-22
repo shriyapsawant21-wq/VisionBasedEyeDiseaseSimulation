@@ -189,10 +189,25 @@ namespace VisionSimulation.Networking
                 case RelayProtocol.StartDiseaseSimulation:
                 {
                     var message = JsonUtility.FromJson<StartDiseaseSimulationMessage>(json);
+                    if (message?.payload == null || string.IsNullOrEmpty(message.payload.program))
+                        return;
+
+                    // The controller mirrors this run on its own clock, so the
+                    // duration has to come from the payload - hardcoding it
+                    // here would drift the two apart on any non-default length.
+                    effectManager.StartDiseaseSimulation(
+                        message.payload.program,
+                        message.payload.durationSeconds);
+                    return;
+                }
+
+                case RelayProtocol.PauseProgression:
+                {
+                    var message = JsonUtility.FromJson<PauseProgressionMessage>(json);
                     if (message?.payload == null)
                         return;
 
-                    effectManager.StartDiseaseSimulation(message.payload.disease, 30f);
+                    effectManager.SetDiseaseSimulationPaused(message.payload.paused);
                     return;
                 }
 
@@ -241,6 +256,9 @@ namespace VisionSimulation.Networking
                 case RelayProtocol.DiseaseRedFloaters:
                     disease = VisionDisease.RedFloaters;
                     return true;
+                case RelayProtocol.DiseaseBloodStreak:
+                    disease = VisionDisease.BloodStreak;
+                    return true;
                 default:
                     disease = VisionDisease.None;
                     return false;
@@ -284,6 +302,9 @@ namespace VisionSimulation.Networking
                     return true;
                 case VisionDisease.RedFloaters:
                     wireValue = RelayProtocol.DiseaseRedFloaters;
+                    return true;
+                case VisionDisease.BloodStreak:
+                    wireValue = RelayProtocol.DiseaseBloodStreak;
                     return true;
                 default:
                     wireValue = null;

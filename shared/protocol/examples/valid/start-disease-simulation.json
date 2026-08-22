@@ -1,0 +1,1 @@
+{ "v": 1, "type": "START_DISEASE_SIMULATION", "seq": 15, "timestamp": 1787234105123, "payload": { "program": "RRD", "durationSeconds": 30 } }

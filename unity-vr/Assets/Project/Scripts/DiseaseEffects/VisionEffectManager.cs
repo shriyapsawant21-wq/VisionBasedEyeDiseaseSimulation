@@ -27,6 +27,7 @@ namespace VisionSimulation.DiseaseEffects
         private float displayedSeverity;
         private Coroutine diseaseSimulation;
         private bool automatedSimulationActive;
+        private bool simulationPaused;
 
         public VisionDisease CurrentDisease => currentDisease;
         public float Severity => severity;
@@ -107,12 +108,26 @@ namespace VisionSimulation.DiseaseEffects
             diseaseSimulation = StartCoroutine(RunDiseaseSimulation(disease, Mathf.Max(0.1f, durationSeconds)));
         }
 
+        /// <summary>
+        /// Holds an in-flight run at its current point, or lets it continue.
+        /// Only meaningful while a run is active; with none in flight this is a
+        /// no-op, so a stray pause cannot wedge the next run before it starts.
+        /// </summary>
+        public void SetDiseaseSimulationPaused(bool paused)
+        {
+            if (diseaseSimulation == null)
+                return;
+
+            simulationPaused = paused;
+        }
+
         private void StopDiseaseSimulation()
         {
             if (diseaseSimulation != null)
                 StopCoroutine(diseaseSimulation);
             diseaseSimulation = null;
             automatedSimulationActive = false;
+            simulationPaused = false;
         }
 
         private IEnumerator RunDiseaseSimulation(string disease, float duration)
@@ -124,8 +139,15 @@ namespace VisionSimulation.DiseaseEffects
 
             while (elapsed < duration)
             {
-                elapsed += Time.unscaledDeltaTime;
-                ApplyDiseaseTimeline(disease, Mathf.Clamp01(elapsed / duration));
+                // Paused holds the timeline where it is rather than exiting:
+                // the wearer keeps seeing the current phase, which is the
+                // point of pausing during a demonstration.
+                if (!simulationPaused)
+                {
+                    elapsed += Time.unscaledDeltaTime;
+                    ApplyDiseaseTimeline(disease, Mathf.Clamp01(elapsed / duration));
+                }
+
                 yield return null;
             }
 
@@ -283,7 +305,8 @@ namespace VisionSimulation.DiseaseEffects
                                     currentDisease == VisionDisease.GhostFloaters ||
                                     currentDisease == VisionDisease.BlackFloaters ||
                                     currentDisease == VisionDisease.RetinalDetachmentFlash ||
-                                    currentDisease == VisionDisease.RedFloaters;
+                                    currentDisease == VisionDisease.RedFloaters ||
+                                    currentDisease == VisionDisease.BloodStreak;
             if (floatersEffect is FloatersEffect floaters)
                 floaters.SetFloaterType(ToFloaterType(currentDisease));
             ApplyEffect(floatersEffect, floatersSelected, effectiveSeverity);
@@ -298,6 +321,10 @@ namespace VisionSimulation.DiseaseEffects
                 VisionDisease.BlackFloaters => FloaterType.BlackDots,
                 VisionDisease.RetinalDetachmentFlash => FloaterType.RetinalFlash,
                 VisionDisease.RedFloaters => FloaterType.RedStreaks,
+                // No dedicated streak render exists yet, so this shares the
+                // RedStreaks look - vitreous blood either way. Give it its own
+                // FloaterType when the shader can tell the two apart.
+                VisionDisease.BloodStreak => FloaterType.RedStreaks,
                 _ => FloaterType.WeissRing
             };
         }

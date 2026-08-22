@@ -145,8 +145,9 @@ payload — it holds no simulation state.
 | `SET_DISEASE` | `{ "disease": DiseaseEnum }` | Select which condition or symptom to simulate, including central scotoma, RD flash, curtain sign, and red floaters. |
 | `SET_SEVERITY` | `{ "severity": 0.0 to 1.0 }` | Intensity. Values outside 0–1 are rejected, not clamped. |
 | `SET_COMPARISON` | `{ "comparison": "NORMAL" or "AFFECTED" }` | Toggle between unaffected and affected vision. |
-| `START_PROGRESSION` | `{ "durationSeconds": >0 and <=600 }` | Ramp severity automatically over this many seconds. |
-| `PAUSE_PROGRESSION` | `{}` | Halt an in-flight progression. |
+| `START_PROGRESSION` | `{ "durationSeconds": >0 and <=600 }` | Ramp severity of the current `SET_DISEASE` effect over this many seconds. |
+| `START_DISEASE_SIMULATION` | `{ "program": DiseaseProgramEnum, "durationSeconds": >0 and <=600 }` | Play a scripted multi-symptom program from `t=0`. Re-sending restarts it. |
+| `PAUSE_PROGRESSION` | `{ "paused": bool }` | Halt an in-flight run in place, or resume it. |
 | `SET_SCENE` | `{ "scene": "GARDEN" }` | Currently only one scene exists. |
 | `RECENTER` | `{}` | Reset head-tracking forward direction. |
 | `RESET` | `{}` | Return to normal vision, severity 0. |
