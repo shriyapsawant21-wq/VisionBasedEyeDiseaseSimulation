@@ -232,6 +232,9 @@ describe("controller commands reach the simulation", () => {
     connector.setComparison("AFFECTED");
     expect((await sim.waitFor("SET_COMPARISON")).payload.comparison).toBe("AFFECTED");
 
+    connector.setScene("HOSPITAL");
+    expect((await sim.waitFor("SET_SCENE")).payload.scene).toBe("HOSPITAL");
+
     connector.recenter();
     await sim.waitFor("RECENTER");
 
@@ -245,7 +248,28 @@ describe("controller commands reach the simulation", () => {
     expect((await sim.waitFor("START_PROGRESSION")).payload.durationSeconds).toBe(300);
 
     connector.pauseProgression();
-    await sim.waitFor("PAUSE_PROGRESSION");
+    expect((await sim.waitFor("PAUSE_PROGRESSION")).payload.paused).toBe(true);
+  });
+
+  it("relays a scripted disease program, its pause and its resume", async () => {
+    const { sim, connector } = await pairedPair();
+    const ofType = (type: string) => sim.received.filter((m) => m.type === type);
+
+    connector.startDiseaseSimulation("RRD", 30);
+    const started = await sim.waitFor("START_DISEASE_SIMULATION");
+    expect(started.payload.program).toBe("RRD");
+    expect(started.payload.durationSeconds).toBe(30);
+
+    // Asserted on the received sequence rather than repeated waitFor calls,
+    // which resolve from the buffer and would keep returning the first pause.
+    connector.pauseProgression(true);
+    connector.pauseProgression(false);
+    await waitUntil(() => ofType("PAUSE_PROGRESSION").length === 2, "both pause frames");
+    expect(ofType("PAUSE_PROGRESSION").map((m) => m.payload.paused)).toEqual([true, false]);
+
+    // Reset is a restart, so it goes out as the same command a fresh Play does.
+    connector.startDiseaseSimulation("RRD", 30);
+    await waitUntil(() => ofType("START_DISEASE_SIMULATION").length === 2, "restart frame");
   });
 
   it("passes STATE_UPDATED from the simulation back to the controller", async () => {
@@ -282,10 +306,12 @@ describe("teardown paths the app depends on", () => {
 });
 
 describe("known rough edges", () => {
-  it("rejects startProgression(0), which Dashboard sends once the timeline completes", async () => {
+  it("rejects a zero duration rather than treating it as 'no ramp'", async () => {
     const { connector, events } = await pairedPair();
-    // DashboardScreen computes PROGRESSION_TOTAL_SECONDS - elapsed; when the
-    // timeline has run out that is 0, and the schema requires > 0.
+    // The old Dashboard sent this by computing (total - elapsed) and letting it
+    // reach 0 at the end of its timeline. That screen is gone - programs now
+    // carry a fixed durationSeconds - but the guard is what kept a spent
+    // timeline from silently becoming an instant jump to full severity.
     connector.startProgression(0);
     await waitUntil(() => events.errors.length > 0, "invalid_message error");
     expect(events.errors[0].code).toBe("invalid_message");

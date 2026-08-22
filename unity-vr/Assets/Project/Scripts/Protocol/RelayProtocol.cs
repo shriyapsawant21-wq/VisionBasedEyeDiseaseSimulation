@@ -55,11 +55,22 @@ namespace VisionSimulation.Protocol
         public const string DiseaseRetinalDetachmentFlash = "RD_FLASH";
         public const string DiseaseCurtainSign = "CURTAIN_SIGN";
         public const string DiseaseRedFloaters = "RED_FLOATERS";
+        public const string DiseaseBloodStreak = "BLOOD_STREAK";
+
+        // DiseaseProgramEnum values, one per case in
+        // VisionEffectManager.ApplyDiseaseTimeline. Distinct from the Disease*
+        // constants above: these name a scripted run, not a single effect.
+        public const string ProgramRetinitisPigmentosa = "RP";
+        public const string ProgramRhegmatogenousDetachment = "RRD";
+        public const string ProgramCentralSerous = "CSCR";
+        public const string ProgramDiabeticMacularEdema = "DR_DME";
+        public const string ProgramChoroidalNeovascular = "CNVM";
 
         public const string ComparisonNormal = "NORMAL";
         public const string ComparisonAffected = "AFFECTED";
 
         public const string SceneGarden = "GARDEN";
+        public const string SceneHospital = "HOSPITAL";
 
         /// <summary>Relay rejects frames larger than this (MAX_MESSAGE_BYTES).</summary>
         public const int MaxMessageBytes = 8 * 1024;

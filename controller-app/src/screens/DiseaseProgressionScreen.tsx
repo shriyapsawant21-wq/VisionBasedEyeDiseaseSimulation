@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import { DISEASE_INFO, activeSymptomsAt, findProgram } from "../diseaseInfo";
+import { useRelayConnector } from "../useRelayConnector";
 import { colors, radius, spacing, type } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "DiseaseProgression">;
@@ -20,35 +21,42 @@ function formatClock(seconds: number): string {
  * up in a clinically meaningful order, so the only controls here are transport
  * controls and the real job of this screen is showing what has accumulated.
  *
- * The run is local to this screen for now: nothing is pushed to the headset
- * until the progression commands are wired through the relay.
+ * Unity runs the same program off its own clock once START_DISEASE_SIMULATION
+ * arrives; the clock here is a local mirror of that run, started at the same
+ * moment and of the same duration, so the two stay in step without the headset
+ * having to report progress back on every frame.
  */
 export function DiseaseProgressionScreen({ route, navigation }: Props) {
   const program = findProgram(route.params.programKey);
+  const { status, startDiseaseSimulation, pauseProgression } = useRelayConnector();
 
   const [elapsed, setElapsed] = useState(0);
   const [playing, setPlaying] = useState(false);
+  // Bumped on every fresh run so restarting while already playing rebuilds the
+  // interval; without it the effect would not re-run and the clock would snap
+  // back to the old start instant.
+  const [runId, setRunId] = useState(0);
   const startedAtRef = useRef(0);
+  const elapsedRef = useRef(0);
 
+  const paired = status === "paired";
   const duration = program?.durationSeconds ?? 0;
 
   useEffect(() => {
     if (!playing || !duration) return;
 
-    startedAtRef.current = Date.now() - elapsed * 1000;
+    // Resuming continues from wherever the last tick left off, so the start
+    // instant is back-dated by the time already run.
+    startedAtRef.current = Date.now() - elapsedRef.current * 1000;
     const id = setInterval(() => {
-      const next = (Date.now() - startedAtRef.current) / 1000;
-      if (next >= duration) {
-        setElapsed(duration);
-        setPlaying(false);
-      } else {
-        setElapsed(next);
-      }
+      const next = Math.min((Date.now() - startedAtRef.current) / 1000, duration);
+      elapsedRef.current = next;
+      setElapsed(next);
+      if (next >= duration) setPlaying(false);
     }, TICK_MS);
 
     return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playing, duration]);
+  }, [playing, duration, runId]);
 
   if (!program) {
     return (
@@ -67,9 +75,25 @@ export function DiseaseProgressionScreen({ route, navigation }: Props) {
   const blackedOut = currentIndex >= 0 && Boolean(program.stages[currentIndex].blackout);
   const finished = elapsed >= duration;
 
-  function restart() {
+  const programKey = program.key;
+
+  /** Play, Replay and Reset are all the same act: run the program from t=0. */
+  function playFromStart() {
+    elapsedRef.current = 0;
     setElapsed(0);
     setPlaying(true);
+    setRunId((n) => n + 1);
+    if (paired) startDiseaseSimulation(programKey, duration);
+  }
+
+  function pause() {
+    setPlaying(false);
+    if (paired) pauseProgression(true);
+  }
+
+  function resume() {
+    setPlaying(true);
+    if (paired) pauseProgression(false);
   }
 
   return (
@@ -99,20 +123,17 @@ export function DiseaseProgressionScreen({ route, navigation }: Props) {
         <View style={styles.transport}>
           <Pressable
             style={[styles.playButton, finished && styles.playButtonSpent]}
-            onPress={() => (finished ? restart() : setPlaying((p) => !p))}
+            onPress={() => {
+              if (playing) pause();
+              else if (finished || elapsed === 0) playFromStart();
+              else resume();
+            }}
           >
             <Text style={styles.playButtonText}>
               {finished ? "Replay" : playing ? "Pause" : elapsed > 0 ? "Resume" : "Play"}
             </Text>
           </Pressable>
-          <Pressable
-            style={[styles.textButton, elapsed === 0 && styles.disabled]}
-            disabled={elapsed === 0}
-            onPress={() => {
-              setPlaying(false);
-              setElapsed(0);
-            }}
-          >
+          <Pressable style={styles.textButton} onPress={playFromStart}>
             <Text style={styles.textButtonLabel}>Reset</Text>
           </Pressable>
         </View>
@@ -165,7 +186,9 @@ export function DiseaseProgressionScreen({ route, navigation }: Props) {
         })}
 
         <Text style={styles.note}>
-          Each stage keeps everything before it. Preview only — this run does not drive the headset yet.
+          {paired
+            ? "Each stage keeps everything before it. Playing drives the headset."
+            : "Each stage keeps everything before it. Not connected — this run is a preview only."}
         </Text>
       </ScrollView>
     </View>
@@ -258,9 +281,6 @@ const styles = StyleSheet.create({
   textButtonLabel: {
     ...type.button,
     color: colors.charcoal,
-  },
-  disabled: {
-    opacity: 0.4,
   },
   sectionLabel: {
     ...type.sectionLabel,

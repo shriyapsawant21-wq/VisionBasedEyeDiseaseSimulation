@@ -31,9 +31,25 @@ export const DiseaseEnum = z.enum([
   "BLOOD_STREAK",
 ]);
 
+/**
+ * A scripted disease *program*, distinct from DiseaseEnum: a DiseaseEnum value
+ * is a single effect held at whatever SET_SEVERITY says, whereas a program is a
+ * timed run in which several effects appear and intensify in a clinically
+ * meaningful order. These values are the cases Unity's
+ * VisionEffectManager.ApplyDiseaseTimeline switches on, so they must stay 1:1
+ * with it - they are not interchangeable with DiseaseEnum.
+ */
+export const DiseaseProgramEnum = z.enum([
+  "RP",
+  "RRD",
+  "CSCR",
+  "DR_DME",
+  "CNVM",
+]);
+
 export const ComparisonEnum = z.enum(["NORMAL", "AFFECTED"]);
 
-export const SceneEnum = z.enum(["GARDEN"]);
+export const SceneEnum = z.enum(["GARDEN", "HOSPITAL"]);
 
 const base = {
   v: z.literal(PROTOCOL_VERSION),
@@ -100,10 +116,32 @@ export const StartProgressionSchema = z.object({
   }),
 });
 
+/**
+ * Plays a scripted program on the headset from t=0. Re-sending it restarts the
+ * run, which is what the controller's Reset does - there is no separate
+ * "rewind" command because a program has no meaningful state to rewind to.
+ */
+export const StartDiseaseSimulationSchema = z.object({
+  ...base,
+  type: z.literal("START_DISEASE_SIMULATION"),
+  payload: z.object({
+    program: DiseaseProgramEnum,
+    durationSeconds: z.number().positive().max(600),
+  }),
+});
+
+/**
+ * Halts an in-flight run in place, or resumes it from where it stopped.
+ * `paused` is required rather than defaulted: Unity parses payloads with
+ * JsonUtility, which cannot tell an absent bool from an explicit `false`, so
+ * an optional field here would silently read as "resume" on the headset.
+ */
 export const PauseProgressionSchema = z.object({
   ...base,
   type: z.literal("PAUSE_PROGRESSION"),
-  payload: z.object({}).optional(),
+  payload: z.object({
+    paused: z.boolean(),
+  }),
 });
 
 export const SetSceneSchema = z.object({
@@ -189,6 +227,7 @@ export const ClientMessageSchema = z.discriminatedUnion("type", [
   SetSeveritySchema,
   SetComparisonSchema,
   StartProgressionSchema,
+  StartDiseaseSimulationSchema,
   PauseProgressionSchema,
   SetSceneSchema,
   RecenterSchema,
@@ -200,6 +239,8 @@ export const ClientMessageSchema = z.discriminatedUnion("type", [
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
 export type Disease = z.infer<typeof DiseaseEnum>;
+export type DiseaseProgram = z.infer<typeof DiseaseProgramEnum>;
+export type Scene = z.infer<typeof SceneEnum>;
 export type Comparison = z.infer<typeof ComparisonEnum>;
 
 /** Commands only a CONTROLLER is allowed to originate. */
@@ -209,6 +250,7 @@ export const CONTROLLER_ONLY_TYPES = new Set([
   "SET_SEVERITY",
   "SET_COMPARISON",
   "START_PROGRESSION",
+  "START_DISEASE_SIMULATION",
   "PAUSE_PROGRESSION",
   "SET_SCENE",
   "RECENTER",

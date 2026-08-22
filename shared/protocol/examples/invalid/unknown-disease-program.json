@@ -1,0 +1,1 @@
+{ "v": 1, "type": "START_DISEASE_SIMULATION", "seq": 2, "timestamp": 1787234105123, "payload": { "program": "TUNNEL_VISION", "durationSeconds": 30 } }

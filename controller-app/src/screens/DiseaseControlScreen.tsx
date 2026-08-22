@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Slider from "@react-native-community/slider";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import { useRelayConnector } from "../useRelayConnector";
+import { CircularSlider } from "../components/CircularSlider";
 import { DISEASE_INFO, ALL_ENTRIES } from "../diseaseInfo";
 import type { Comparison, Disease } from "../../../relay/src/protocol";
 import { colors, spacing, type } from "../theme";
@@ -18,7 +18,9 @@ const SEVERITY_PRESETS = { Mild: 0.25, Moderate: 0.55, Severe: 0.85 };
  * Dashboard list, which also pushes SET_DISEASE so the headset is already
  * on this condition by the time the screen opens. Controls are disabled
  * until paired - the relay rejects them anyway, this just avoids dead taps.
- * Scene switching is intentionally omitted: SceneEnum only has "GARDEN".
+ * Scene switching lives on the Dashboard's Background section instead of
+ * here - it's a property of the environment, not of the condition being
+ * simulated, so it stays in effect across whatever disease is selected.
  */
 export function DiseaseControlScreen({ route, navigation }: Props) {
   const { status, controllerState, lastError, setDisease, setSeverity, setComparison, endSession, disconnect } =
@@ -101,16 +103,12 @@ export function DiseaseControlScreen({ route, navigation }: Props) {
 
         <Text style={styles.sectionLabel}>{info.severityLabel}</Text>
         <View style={styles.section}>
-          <Text style={styles.severityValue}>{Math.round(localSeverity * 100)}%</Text>
-          <Slider
-            minimumValue={0}
-            maximumValue={1}
+          <CircularSlider
             value={localSeverity}
             onValueChange={setLocalSeverity}
             onSlidingComplete={setSeverity}
             disabled={!paired}
-            minimumTrackTintColor={colors.coral}
-            thumbTintColor={colors.coral}
+            label={info.severityLabel}
           />
           <View style={styles.row}>
             {(Object.keys(SEVERITY_PRESETS) as Array<keyof typeof SEVERITY_PRESETS>).map((preset) => (
@@ -251,11 +249,6 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: 0.4,
-  },
-  severityValue: {
-    ...type.title,
-    fontSize: 32,
-    color: colors.coral,
   },
   presetButton: {
     borderWidth: 1,

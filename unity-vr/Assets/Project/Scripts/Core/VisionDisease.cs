@@ -13,6 +13,7 @@ namespace VisionSimulation.Core
         CentralScotoma = 8,
         RetinalDetachmentFlash = 9,
         CurtainSign = 10,
-        RedFloaters = 11
+        RedFloaters = 11,
+        BloodStreak = 12
     }
 }

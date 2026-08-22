@@ -1,7 +1,9 @@
 import {
   PROTOCOL_VERSION,
   type Disease,
+  type DiseaseProgram,
   type Comparison,
+  type Scene,
 } from "../../relay/src/protocol";
 
 // Uses the ambient WebSocket global (React Native and browsers both provide
@@ -11,7 +13,7 @@ export interface ControllerState {
   disease: Disease;
   severity: number;
   comparison: Comparison;
-  scene: "GARDEN";
+  scene: Scene;
 }
 
 export interface ConnectorEvents {
@@ -77,12 +79,21 @@ export class RelayConnector {
     this.send("SET_COMPARISON", { comparison });
   }
 
+  setScene(scene: Scene): void {
+    this.send("SET_SCENE", { scene });
+  }
+
   startProgression(durationSeconds: number): void {
     this.send("START_PROGRESSION", { durationSeconds });
   }
 
-  pauseProgression(): void {
-    this.send("PAUSE_PROGRESSION", {});
+  /** Plays a scripted program on the headset from the start. */
+  startDiseaseSimulation(program: DiseaseProgram, durationSeconds: number): void {
+    this.send("START_DISEASE_SIMULATION", { program, durationSeconds });
+  }
+
+  pauseProgression(paused = true): void {
+    this.send("PAUSE_PROGRESSION", { paused });
   }
 
   recenter(): void {

@@ -1,4 +1,4 @@
-import type { Disease } from "../../relay/src/protocol";
+import type { Disease, DiseaseProgram as ProgramId } from "../../relay/src/protocol";
 
 export interface DiseaseInfo {
   disease: Disease;
@@ -165,12 +165,22 @@ export interface ProgressionStage {
   at: number;
   label: string;
   adds: Disease[];
+  /**
+   * Symptoms Unity's timeline fades back out at this point. Without this a
+   * stage list can only ever accumulate, which would keep showing a symptom
+   * the wearer has stopped seeing.
+   */
+  removes?: Disease[];
   severity: number;
   blackout?: boolean;
 }
 
 export interface DiseaseProgram {
-  key: string;
+  /**
+   * Also the wire value sent as START_DISEASE_SIMULATION's `program`, so these
+   * are Unity's timeline cases rather than free-form local ids.
+   */
+  key: ProgramId;
   cardLabel: string;
   clinicalLabel: string;
   durationSeconds: number;
@@ -197,10 +207,12 @@ export const DISEASE_PROGRAMS: DiseaseProgram[] = [
     durationSeconds: 30,
     stages: [
       { at: 0, label: "Black floaters appear", adds: ["RETINAL_DETACHMENT"], severity: 0.3 },
-      { at: 6, label: "Weiss ring detaches", adds: ["PVD_WEISS_RING"], severity: 0.4 },
-      { at: 12, label: "Floater shower with flashes", adds: ["RD_FLASH"], severity: 0.6 },
-      { at: 19, label: "Curtain advances", adds: ["CURTAIN_SIGN"], severity: 0.8 },
-      { at: 26, label: "Permanent blindness", adds: [], severity: 1, blackout: true },
+      { at: 8, label: "Weiss ring detaches", adds: ["PVD_WEISS_RING"], severity: 0.4 },
+      { at: 16, label: "Floater shower with flashes", adds: ["RD_FLASH"], severity: 0.6 },
+      { at: 22, label: "Curtain advances", adds: ["CURTAIN_SIGN"], severity: 0.8 },
+      // Not a blackout: this program's blackout channel is held at 0 in Unity
+      // and the curtain is what reaches full coverage by the end.
+      { at: 28, label: "Curtain covers the field", adds: [], severity: 1 },
     ],
   },
   {
@@ -210,12 +222,14 @@ export const DISEASE_PROGRAMS: DiseaseProgram[] = [
     durationSeconds: 30,
     stages: [
       { at: 0, label: "Faint distortion", adds: ["METAMORPHOPSIA"], severity: 0.25 },
-      { at: 10, label: "Central warping", adds: [], severity: 0.55 },
-      { at: 20, label: "Marked metamorphopsia", adds: [], severity: 0.85 },
+      { at: 8, label: "Central warping peaks", adds: [], severity: 0.6 },
+      { at: 13, label: "Scotoma forms behind the distortion", adds: ["CENTRAL_SCOTOMA"], severity: 0.5 },
+      // Unity fades metamorphopsia out entirely by ~26s, leaving the scotoma.
+      { at: 26, label: "Distortion gives way to dense scotoma", adds: [], removes: ["METAMORPHOPSIA"], severity: 0.9 },
     ],
   },
   {
-    key: "DR",
+    key: "DR_DME",
     cardLabel: "DR (DME)",
     clinicalLabel: "Diabetic Retinopathy / Diabetic Macular Edema",
     durationSeconds: 30,
@@ -242,7 +256,7 @@ export const DISEASE_PROGRAMS: DiseaseProgram[] = [
   },
 ];
 
-export function findProgram(key: string): DiseaseProgram | undefined {
+export function findProgram(key: ProgramId): DiseaseProgram | undefined {
   return DISEASE_PROGRAMS.find((program) => program.key === key);
 }
 
@@ -253,6 +267,10 @@ export function activeSymptomsAt(program: DiseaseProgram, elapsed: number): Dise
     if (stage.blackout) return [];
     for (const disease of stage.adds) {
       if (!seen.includes(disease)) seen.push(disease);
+    }
+    for (const disease of stage.removes ?? []) {
+      const at = seen.indexOf(disease);
+      if (at >= 0) seen.splice(at, 1);
     }
   }
   return seen;
