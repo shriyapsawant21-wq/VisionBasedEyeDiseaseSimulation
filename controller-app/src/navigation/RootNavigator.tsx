@@ -7,6 +7,7 @@ import { MainTabs } from "./MainTabs";
 import { PairingScreen } from "../screens/PairingScreen";
 import { FloaterListScreen } from "../screens/FloaterListScreen";
 import { DiseaseControlScreen } from "../screens/DiseaseControlScreen";
+import { DiseaseProgressionScreen } from "../screens/DiseaseProgressionScreen";
 import { ConnectionLostScreen } from "../screens/ConnectionLostScreen";
 import { useRelayConnector } from "../useRelayConnector";
 import type { Disease } from "../../../relay/src/protocol";
@@ -18,6 +19,8 @@ export type RootStackParamList = {
   Pairing: undefined;
   FloaterList: undefined;
   DiseaseControl: { disease: Disease };
+  /** A disease run, keyed by DISEASE_PROGRAMS entry rather than one Disease. */
+  DiseaseProgression: { programKey: string };
   ConnectionLost: undefined;
 };
 
@@ -57,6 +60,7 @@ export function RootNavigator() {
         <Stack.Screen name="Pairing" component={PairingScreen} />
         <Stack.Screen name="FloaterList" component={FloaterListScreen} />
         <Stack.Screen name="DiseaseControl" component={DiseaseControlScreen} />
+        <Stack.Screen name="DiseaseProgression" component={DiseaseProgressionScreen} />
         <Stack.Screen name="ConnectionLost" component={ConnectionLostScreen} />
       </Stack.Navigator>
       <StatusRouter />

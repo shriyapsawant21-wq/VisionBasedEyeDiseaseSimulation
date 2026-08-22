@@ -19,11 +19,15 @@ export const PROTOCOL_VERSION = 1 as const;
 export const DiseaseEnum = z.enum([
   "METAMORPHOPSIA",
   "CENTRAL_BLUR",
+  "CENTRAL_SCOTOMA",
   "TUNNEL_VISION",
   "RETINAL_DETACHMENT",
   "PVD_WEISS_RING",
   "PVD_DOT",
   "GHOST_FLOATERS",
+  "RED_FLOATERS",
+  "RD_FLASH",
+  "CURTAIN",
 ]);
 
 export const ComparisonEnum = z.enum(["NORMAL", "AFFECTED"]);

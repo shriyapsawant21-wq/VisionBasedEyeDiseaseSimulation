@@ -6,7 +6,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import type { MainTabsParamList } from "../navigation/MainTabs";
 import { useRelayConnector } from "../useRelayConnector";
-import { DISEASE_ENTRIES, type DiseaseEntry } from "../diseaseInfo";
+import { DISEASE_PROGRAMS } from "../diseaseInfo";
 import { OptionsButton } from "../components/OptionsButton";
 import { SidePanel } from "../components/SidePanel";
 import { DiseaseCard } from "../components/DiseaseCard";
@@ -32,24 +32,18 @@ function statusLabel(status: string, sessionId: string | null): string {
 
 /**
  * Dashboard is the app's persistent home screen (not gated behind pairing)
- * and deliberately holds nothing but the disease list - every control for a
- * given condition lives on DiseaseControlScreen, one tap away.
+ * and deliberately holds nothing but the disease list - the whole run for a
+ * given condition lives on DiseaseProgressionScreen, one tap away.
+ *
+ * Diseases carry no severity control: each one is a timed run where symptoms
+ * accumulate, so there is nothing to push on selection the way the Symptoms
+ * tab pushes SET_DISEASE.
  */
 export function DashboardScreen({ navigation }: Props) {
-  const { status, sessionId, lastError, setDisease, disconnect } = useRelayConnector();
+  const { status, sessionId, lastError, disconnect } = useRelayConnector();
   const [panelOpen, setPanelOpen] = useState(false);
 
   const paired = status === "paired";
-
-  function handleSelect(entry: DiseaseEntry) {
-    // open on the entry's first variant; the control screen switches between
-    // them for multi-variant entries like PVD
-    const disease = entry.variants[0];
-    // only push the command when there's a session to receive it; the screen
-    // itself opens either way so the controls can be browsed while unpaired
-    if (paired) setDisease(disease);
-    navigation.navigate("DiseaseControl", { disease });
-  }
 
   return (
     <View style={styles.root}>
@@ -71,8 +65,12 @@ export function DashboardScreen({ navigation }: Props) {
         ) : null}
 
         <Text style={styles.sectionLabel}>Disease</Text>
-        {DISEASE_ENTRIES.map((entry) => (
-          <DiseaseCard key={entry.key} label={entry.cardLabel} onPress={() => handleSelect(entry)} />
+        {DISEASE_PROGRAMS.map((program) => (
+          <DiseaseCard
+            key={program.key}
+            label={program.cardLabel}
+            onPress={() => navigation.navigate("DiseaseProgression", { programKey: program.key })}
+          />
         ))}
 
       </ScrollView>

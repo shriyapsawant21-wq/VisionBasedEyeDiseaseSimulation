@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -6,6 +7,8 @@ import type { RootStackParamList } from "../navigation/RootNavigator";
 import type { MainTabsParamList } from "../navigation/MainTabs";
 import { useRelayConnector } from "../useRelayConnector";
 import { SYMPTOM_ENTRIES, type DiseaseEntry } from "../diseaseInfo";
+import { OptionsButton } from "../components/OptionsButton";
+import { SidePanel } from "../components/SidePanel";
 import { DiseaseCard } from "../components/DiseaseCard";
 import { colors, spacing, type } from "../theme";
 
@@ -27,9 +30,15 @@ function statusLabel(status: string, sessionId: string | null): string {
   }
 }
 
-/** Symptoms driven on their own, without a disease wrapped around them. */
+/**
+ * Symptoms driven on their own, without a disease wrapped around them.
+ * Shares the Dashboard chrome - app name, status and the pairing shortcut in
+ * the header - because the two tabs are peers, not a screen and a sub-screen.
+ */
 export function SymptomListScreen({ navigation }: Props) {
-  const { status, sessionId, lastError, setDisease } = useRelayConnector();
+  const { status, sessionId, lastError, setDisease, disconnect } = useRelayConnector();
+  const [panelOpen, setPanelOpen] = useState(false);
+
   const paired = status === "paired";
 
   function handleSelect(entry: DiseaseEntry) {
@@ -41,10 +50,13 @@ export function SymptomListScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Text style={styles.appName}>Symptoms</Text>
-        <Text style={[styles.statusLine, paired && styles.statusLinePaired]}>
-          {statusLabel(status, sessionId)}
-        </Text>
+        <View>
+          <Text style={styles.appName}>VisionSim VR</Text>
+          <Text style={[styles.statusLine, paired && styles.statusLinePaired]}>
+            {statusLabel(status, sessionId)}
+          </Text>
+        </View>
+        <OptionsButton onPress={() => setPanelOpen(true)} />
       </View>
 
       <ScrollView contentContainerStyle={styles.container}>
@@ -54,6 +66,7 @@ export function SymptomListScreen({ navigation }: Props) {
           </Text>
         ) : null}
 
+        <Text style={styles.sectionLabel}>Symptoms</Text>
         {SYMPTOM_ENTRIES.map((entry) => (
           <DiseaseCard key={entry.key} label={entry.cardLabel} onPress={() => handleSelect(entry)} />
         ))}
@@ -61,6 +74,31 @@ export function SymptomListScreen({ navigation }: Props) {
         {/* the only symptom with sub-types, so it opens a list instead */}
         <DiseaseCard label="Floaters" onPress={() => navigation.navigate("FloaterList")} />
       </ScrollView>
+
+      <SidePanel visible={panelOpen} onClose={() => setPanelOpen(false)}>
+        <Text style={styles.panelTitle}>Options</Text>
+        {paired ? (
+          <Pressable
+            style={styles.textButton}
+            onPress={() => {
+              setPanelOpen(false);
+              disconnect();
+            }}
+          >
+            <Text style={styles.textButtonLabel}>Disconnect</Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            style={styles.textButton}
+            onPress={() => {
+              setPanelOpen(false);
+              navigation.navigate("Pairing");
+            }}
+          >
+            <Text style={styles.textButtonLabel}>Connect / Pair</Text>
+          </Pressable>
+        )}
+      </SidePanel>
     </View>
   );
 }
@@ -71,6 +109,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.offWhiteDeep,
   },
   header: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xxl + spacing.lg,
     paddingBottom: spacing.lg,
@@ -91,8 +132,28 @@ const styles = StyleSheet.create({
   container: {
     padding: spacing.lg,
   },
+  sectionLabel: {
+    ...type.sectionLabel,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    marginBottom: spacing.sm,
+  },
   error: {
     marginBottom: spacing.sm,
     color: colors.coral,
+  },
+  textButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.charcoal,
+  },
+  textButtonLabel: {
+    ...type.button,
+    color: colors.charcoal,
+  },
+  panelTitle: {
+    ...type.value,
+    color: colors.textOnLight,
   },
 });
