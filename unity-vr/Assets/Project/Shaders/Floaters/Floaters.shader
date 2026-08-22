@@ -272,7 +272,10 @@ Shader "VisionSimulation/Floaters"
                     }
                 }
 
-                if (_OverlayRed > 0.001)
+                // RedStreaks already renders this same field in the primary
+                // branch. Only calculate the retained overlay after another
+                // floater type (such as RetinalFlash) has taken over.
+                if (_OverlayRed > 0.001 && _FloaterType < 4.5)
                 {
                     [unroll] for (int i = 0; i < 72; i++)
                     {
