@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using VisionSimulation.Core;
 using VisionSimulation.DiseaseEffects;
 
@@ -9,10 +10,32 @@ namespace VisionSimulation.UI
     {
         [SerializeField] private VisionEffectManager effectManager;
         [SerializeField, Range(0.01f, 0.5f)] private float severityStep = 0.1f;
+        [Header("Scene toggle")]
+        [SerializeField] private string gardenSceneName = "Garden";
+        [SerializeField] private string hospitalSceneName = "Hospital";
+        [SerializeField] private bool toggleSceneOnScreenTap = true;
+
+        private void Awake()
+        {
+            // The Cardboard gaze pointer is not used by this simulation and
+            // otherwise appears as a distracting white dot in the view centre.
+            GameObject reticle = GameObject.Find("CardboardReticlePointer");
+            if (reticle != null)
+                reticle.SetActive(false);
+        }
 
         private void Update()
         {
-            if (effectManager == null || Keyboard.current == null)
+            if (effectManager == null)
+                return;
+
+            bool keyboardToggle = Keyboard.current != null && Keyboard.current.tabKey.wasPressedThisFrame;
+            bool touchToggle = toggleSceneOnScreenTap && Touchscreen.current != null &&
+                               Touchscreen.current.primaryTouch.press.wasPressedThisFrame;
+            if (keyboardToggle || touchToggle)
+                ToggleScene();
+
+            if (Keyboard.current == null)
                 return;
 
             // Automated 30-second disease simulations for quick Play Mode testing.
@@ -51,6 +74,24 @@ namespace VisionSimulation.UI
                 effectManager.SetSeverity(effectManager.Severity - severityStep);
             if (Keyboard.current.spaceKey.wasPressedThisFrame)
                 effectManager.ToggleComparison();
+        }
+
+        /// <summary>
+        /// Switches only the environment scene. Both scenes keep their own
+        /// identical simulation rig and disease-effect configuration.
+        /// This public method can also be assigned to a Unity UI Button.
+        /// </summary>
+        public void ToggleScene()
+        {
+            string current = SceneManager.GetActiveScene().name;
+            string target = current == hospitalSceneName ? gardenSceneName : hospitalSceneName;
+            if (!Application.CanStreamedLevelBeLoaded(target))
+            {
+                Debug.LogError($"[VisionDebugControls] Scene '{target}' is not enabled in Build Settings.");
+                return;
+            }
+
+            SceneManager.LoadScene(target);
         }
     }
 }
