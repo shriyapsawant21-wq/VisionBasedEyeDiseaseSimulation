@@ -13,8 +13,14 @@ venue Wi-Fi or on the internet being up.
 ```bash
 cd relay
 npm ci          # first time only
+npm run discovery:key # first time only; keep the generated private key local
 npm run dev     # or: npm run build && npm start
 ```
+
+Discovery responses are signed with `.discovery-private-key.pem`; the matching
+public key is automatically pinned in the Unity source by `discovery:key`.
+Commit that source change and rebuild Unity after generating a new identity.
+Do not commit or copy the private key to a client device.
 
 In a second terminal, get the URL to hand out:
 

@@ -1,6 +1,8 @@
 import { createRelay } from "./server";
 import { startDiscovery } from "./discovery";
 import type { Socket } from "node:dgram";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const port = Number(process.env.PORT ?? 8787);
 const log = (event: string, fields: Record<string, unknown>) =>
@@ -9,7 +11,14 @@ const relay = createRelay({ port, logger: log });
 let discovery: Socket | null = null;
 
 void relay.listen().then(() => {
-  discovery = startDiscovery(port, log);
+  const keyPath = resolve(process.env.DISCOVERY_PRIVATE_KEY_PATH ?? ".discovery-private-key.pem");
+  try {
+    discovery = startDiscovery(port, readFileSync(keyPath, "utf8"), log);
+  } catch (error) {
+    log("discovery_disabled", {
+      message: error instanceof Error ? error.message : "could not load discovery private key",
+    });
+  }
 }).catch((error: NodeJS.ErrnoException) => {
   if (error.code === "EADDRINUSE") {
     console.log(`VisionBridge relay is already running on port ${port}. Use the existing window.`);

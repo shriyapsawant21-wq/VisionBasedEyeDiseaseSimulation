@@ -151,8 +151,8 @@ namespace VisionSimulation.Networking
             helloSent = false;
 
             State = RelaySessionState.Connecting;
-            // Discovery may update the port, but it must never replace the
-            // configured relay host with an unauthenticated UDP sender.
+            // The signed discovery response can safely update a DHCP-assigned
+            // host address without trusting whichever LAN device answers first.
             discoveryTask = RelayDiscovery.FindAsync(relayUrl);
         }
 
