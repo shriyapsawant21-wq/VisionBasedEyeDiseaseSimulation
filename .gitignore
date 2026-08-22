@@ -8,6 +8,17 @@ unity-vr/Build/
 unity-vr/Builds/
 unity-vr/MemoryCaptures/
 
+# Unity ProjectSettings and auto-generated assets
+unity-vr/ProjectSettings/
+unity-vr/Assets/DefaultVolumeProfile.asset*
+unity-vr/Assets/Readme.asset*
+unity-vr/Assets/Resources/
+unity-vr/Assets/Scenes/SampleScene*
+unity-vr/Assets/Settings/
+unity-vr/Assets/UniversalRenderPipelineGlobalSettings*
+unity-vr/Assets/MobileDependencyResolver/
+unity-vr/Assets/XR/
+
 # Visual Studio
 unity-vr/*.csproj
 unity-vr/*.sln
