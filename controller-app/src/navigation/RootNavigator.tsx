@@ -5,6 +5,7 @@ import { SplashScreen } from "../screens/SplashScreen";
 import { DisclaimerScreen } from "../screens/DisclaimerScreen";
 import { DashboardScreen } from "../screens/DashboardScreen";
 import { PairingScreen } from "../screens/PairingScreen";
+import { FloaterListScreen } from "../screens/FloaterListScreen";
 import { DiseaseControlScreen } from "../screens/DiseaseControlScreen";
 import { ConnectionLostScreen } from "../screens/ConnectionLostScreen";
 import { useRelayConnector } from "../useRelayConnector";
@@ -15,6 +16,7 @@ export type RootStackParamList = {
   Disclaimer: undefined;
   Dashboard: undefined;
   Pairing: undefined;
+  FloaterList: undefined;
   DiseaseControl: { disease: Disease };
   ConnectionLost: undefined;
 };
@@ -53,6 +55,7 @@ export function RootNavigator() {
         <Stack.Screen name="Disclaimer" component={DisclaimerScreen} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Pairing" component={PairingScreen} />
+        <Stack.Screen name="FloaterList" component={FloaterListScreen} />
         <Stack.Screen name="DiseaseControl" component={DiseaseControlScreen} />
         <Stack.Screen name="ConnectionLost" component={ConnectionLostScreen} />
       </Stack.Navigator>

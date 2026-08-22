@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Slider from "@react-native-community/slider";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import { useRelayConnector } from "../useRelayConnector";
-import { DISEASE_INFO } from "../diseaseInfo";
-import type { Comparison } from "../../../relay/src/protocol";
+import { DISEASE_INFO, ALL_ENTRIES } from "../diseaseInfo";
+import type { Comparison, Disease } from "../../../relay/src/protocol";
 import { colors, spacing, type } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "DiseaseControl">;
@@ -21,17 +21,36 @@ const SEVERITY_PRESETS = { Mild: 0.25, Moderate: 0.55, Severe: 0.85 };
  * Scene switching is intentionally omitted: SceneEnum only has "GARDEN".
  */
 export function DiseaseControlScreen({ route, navigation }: Props) {
-  const { disease } = route.params;
-  const info = DISEASE_INFO[disease];
-
-  const { status, controllerState, lastError, setSeverity, setComparison, endSession, disconnect } =
+  const { status, controllerState, lastError, setDisease, setSeverity, setComparison, endSession, disconnect } =
     useRelayConnector();
 
+  const [activeDisease, setActiveDisease] = useState<Disease>(route.params.disease);
   const [confirmingEnd, setConfirmingEnd] = useState(false);
   const [localSeverity, setLocalSeverity] = useState(controllerState?.severity ?? 0.25);
 
+  const info = DISEASE_INFO[activeDisease];
+  // PVD is one card covering two floater variants; everything else has one
+  const entry = ALL_ENTRIES.find((e) => e.variants.includes(activeDisease));
+  const variants = entry?.variants ?? [activeDisease];
+  const inertVariants = entry?.inertVariants ?? [];
+  const showChips = variants.length + inertVariants.length > 1;
+
   const paired = status === "paired";
   const activeComparison = controllerState?.comparison ?? "NORMAL";
+
+  function handleVariant(next: Disease) {
+    setActiveDisease(next);
+    if (paired) setDisease(next);
+  }
+
+  // Unity only enables an effect once severity clears zero, so selecting a
+  // condition alone leaves the headset unchanged. Push the severity the
+  // slider is already showing whenever the selection changes (or when the
+  // session pairs later) so the simulation actually starts at that value.
+  useEffect(() => {
+    if (paired) setSeverity(localSeverity);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDisease, paired]);
 
   return (
     <View style={styles.root}>
@@ -39,7 +58,9 @@ export function DiseaseControlScreen({ route, navigation }: Props) {
         <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
           <Text style={styles.backLabel}>‹ Back</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>{info.shortLabel}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {info.shortLabel}
+        </Text>
         <View style={{ width: 48 }} />
       </View>
 
@@ -50,9 +71,35 @@ export function DiseaseControlScreen({ route, navigation }: Props) {
           </Text>
         ) : null}
 
-        <Text style={styles.symptomName}>{info.symptomName}</Text>
+        {/* with variants the chips already name the symptom, so a heading
+            would just repeat whichever one is selected */}
+        {showChips ? (
+          <View style={styles.variantRow}>
+            {variants.map((variant) => {
+              const active = variant === activeDisease;
+              return (
+                <Pressable
+                  key={variant}
+                  style={[styles.variantChip, active && styles.variantChipActive]}
+                  onPress={() => handleVariant(variant)}
+                >
+                  <Text style={[styles.variantChipText, active && styles.variantChipTextActive]}>
+                    {DISEASE_INFO[variant].symptomName}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            {inertVariants.map((name) => (
+              <View key={name} style={[styles.variantChip, styles.variantChipInert]}>
+                <Text style={styles.variantChipText}>{name}</Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.symptomName}>{info.symptomName}</Text>
+        )}
 
-        <Text style={styles.sectionLabel}>Severity</Text>
+        <Text style={styles.sectionLabel}>{info.severityLabel}</Text>
         <View style={styles.section}>
           <Text style={styles.severityValue}>{Math.round(localSeverity * 100)}%</Text>
           <Slider
@@ -148,6 +195,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...type.value,
+    flex: 1,
+    textAlign: "center",
+    marginHorizontal: spacing.sm,
     color: colors.textOnDark,
   },
   container: {
@@ -167,6 +217,31 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: spacing.sm,
+  },
+  variantRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  variantChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  variantChipActive: {
+    backgroundColor: colors.deepRed,
+    borderColor: colors.deepRed,
+  },
+  variantChipInert: {
+    opacity: 0.45,
+  },
+  variantChipText: {
+    ...type.button,
+    color: colors.charcoal,
+  },
+  variantChipTextActive: {
+    color: colors.offWhite,
   },
   row: {
     flexDirection: "row",

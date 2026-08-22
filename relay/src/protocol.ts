@@ -7,11 +7,23 @@ import { z } from "zod";
 
 export const PROTOCOL_VERSION = 1 as const;
 
+/**
+ * One value per simulated condition, mirroring unity-vr's VisionDisease enum
+ * 1:1 (minus its None member). The floater conditions are distinct values
+ * rather than one value plus a variant field because Unity's FloatersEffect
+ * renders exactly one FloaterType at a time.
+ *
+ * severity (SET_SEVERITY) means whatever that condition's effect maps it to:
+ * blur amount, warp strength, clear radius, floater size, or floater count.
+ */
 export const DiseaseEnum = z.enum([
   "METAMORPHOPSIA",
   "CENTRAL_BLUR",
   "TUNNEL_VISION",
   "RETINAL_DETACHMENT",
+  "PVD_WEISS_RING",
+  "PVD_DOT",
+  "GHOST_FLOATERS",
 ]);
 
 export const ComparisonEnum = z.enum(["NORMAL", "AFFECTED"]);

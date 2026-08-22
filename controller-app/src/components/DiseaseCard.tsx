@@ -11,13 +11,28 @@ const DASH_COUNT = 7;
  * the card, with a deep oxblood stub down the left and a dashed
  * perforation. The disease name is the only copy on the card.
  */
-export function DiseaseCard({ label, onPress }: { label: string; onPress: () => void }) {
+export function DiseaseCard({
+  label,
+  onPress,
+  compact = false,
+  disabled = false,
+}: {
+  label: string;
+  onPress: () => void;
+  /** Half-width so two cards sit side by side in a row. */
+  compact?: boolean;
+  disabled?: boolean;
+}) {
   return (
-    <Pressable style={styles.wrapper} onPress={onPress}>
+    <Pressable
+      style={[styles.wrapper, compact && styles.wrapperCompact, disabled && styles.disabled]}
+      onPress={onPress}
+      disabled={disabled}
+    >
       <View style={styles.shadowBlock} />
 
       <View style={styles.card}>
-        <View style={styles.stub} />
+        <View style={[styles.stub, compact && styles.stubCompact]} />
 
         <View style={styles.perforation}>
           {Array.from({ length: DASH_COUNT }).map((_, i) => (
@@ -25,8 +40,10 @@ export function DiseaseCard({ label, onPress }: { label: string; onPress: () => 
           ))}
         </View>
 
-        <View style={styles.body}>
-          <Text style={styles.label}>{label}</Text>
+        <View style={[styles.body, compact && styles.bodyCompact]}>
+          <Text style={[styles.label, compact && styles.labelCompact]} numberOfLines={2}>
+            {label}
+          </Text>
         </View>
       </View>
     </Pressable>
@@ -38,6 +55,12 @@ const styles = StyleSheet.create({
     paddingBottom: OFFSET,
     paddingRight: OFFSET,
     marginBottom: spacing.md,
+  },
+  wrapperCompact: {
+    flex: 1,
+  },
+  disabled: {
+    opacity: 0.45,
   },
   shadowBlock: {
     position: "absolute",
@@ -59,6 +82,9 @@ const styles = StyleSheet.create({
     width: STUB_WIDTH,
     backgroundColor: colors.deepRed,
   },
+  stubCompact: {
+    width: 34,
+  },
   perforation: {
     justifyContent: "space-evenly",
     alignItems: "center",
@@ -75,9 +101,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: spacing.lg,
   },
+  bodyCompact: {
+    paddingHorizontal: spacing.md,
+  },
   label: {
     ...type.value,
     fontSize: 19,
     color: colors.charcoal,
+  },
+  labelCompact: {
+    fontSize: 16,
   },
 });
