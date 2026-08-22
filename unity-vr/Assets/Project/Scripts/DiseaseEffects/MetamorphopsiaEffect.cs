@@ -16,9 +16,17 @@ namespace VisionSimulation.DiseaseEffects
         private static readonly int EffectRadiusId = Shader.PropertyToID("_EffectRadius");
         private static readonly int WaveFrequencyId = Shader.PropertyToID("_WaveFrequency");
         private static readonly int CenterOffsetId = Shader.PropertyToID("_CenterOffset");
+        private static readonly int BorderOnlyId = Shader.PropertyToID("_BorderOnly");
 
         private bool effectEnabled;
         private float severity;
+        private bool borderOnly;
+
+        public void SetBorderOnly(bool value)
+        {
+            borderOnly = value;
+            ApplyMaterialProperties();
+        }
 
         public void SetEnabled(bool isEnabled)
         {
@@ -62,6 +70,7 @@ namespace VisionSimulation.DiseaseEffects
             float longWaveFrequency = Mathf.Clamp(waveFrequency * 0.375f, 2f, 6f);
             metamorphopsiaMaterial.SetFloat(WaveFrequencyId, longWaveFrequency);
             metamorphopsiaMaterial.SetVector(CenterOffsetId, centerOffset);
+            metamorphopsiaMaterial.SetFloat(BorderOnlyId, borderOnly ? 1f : 0f);
         }
     }
 }

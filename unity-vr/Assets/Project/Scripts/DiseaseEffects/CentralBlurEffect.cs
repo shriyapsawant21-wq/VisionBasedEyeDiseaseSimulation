@@ -27,10 +27,18 @@ namespace VisionSimulation.DiseaseEffects
         private bool effectEnabled;
         private float severity;
         private CentralEffectMode mode;
+        private float modeBlend;
 
         public void SetMode(CentralEffectMode value)
         {
             mode = value;
+            modeBlend = (float)value;
+            ApplyMaterialProperties();
+        }
+
+        public void SetModeBlend(float value)
+        {
+            modeBlend = Mathf.Clamp01(value);
             ApplyMaterialProperties();
         }
 
@@ -64,14 +72,14 @@ namespace VisionSimulation.DiseaseEffects
             float appliedSeverity = effectEnabled ? severity : 0f;
             centralBlurMaterial.SetFloat(EnabledId, effectEnabled ? 1f : 0f);
             centralBlurMaterial.SetFloat(SeverityId, appliedSeverity);
-            float maskRadius = mode == CentralEffectMode.Scotoma
-                ? severeMaskRadius * Mathf.Lerp(0.22f, 0.68f, appliedSeverity)
-                : severeMaskRadius * Mathf.Lerp(0.65f, 1f, appliedSeverity);
+            float blurRadius = severeMaskRadius * Mathf.Lerp(0.65f, 1f, appliedSeverity);
+            float scotomaRadius = severeMaskRadius * Mathf.Lerp(0.22f, 0.68f, appliedSeverity);
+            float maskRadius = Mathf.Lerp(blurRadius, scotomaRadius, modeBlend);
             centralBlurMaterial.SetFloat(MaskRadiusId, maskRadius);
             centralBlurMaterial.SetFloat(FeatherWidthId, featherWidth);
             centralBlurMaterial.SetFloat(BlurPixelsId, maximumBlurPixels * appliedSeverity);
             centralBlurMaterial.SetVector(CenterOffsetId, centerOffset);
-            centralBlurMaterial.SetFloat(ModeId, (float)mode);
+            centralBlurMaterial.SetFloat(ModeId, modeBlend);
         }
     }
 }

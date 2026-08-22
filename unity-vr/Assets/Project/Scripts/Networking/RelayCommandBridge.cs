@@ -186,6 +186,16 @@ namespace VisionSimulation.Networking
                     return;
                 }
 
+                case RelayProtocol.StartDiseaseSimulation:
+                {
+                    var message = JsonUtility.FromJson<StartDiseaseSimulationMessage>(json);
+                    if (message?.payload == null)
+                        return;
+
+                    effectManager.StartDiseaseSimulation(message.payload.disease, 30f);
+                    return;
+                }
+
                 case RelayProtocol.Reset:
                 {
                     effectManager.ResetSimulation();
@@ -229,6 +239,7 @@ namespace VisionSimulation.Networking
                     disease = VisionDisease.CurtainSign;
                     return true;
                 case RelayProtocol.DiseaseRedFloaters:
+                case RelayProtocol.DiseaseBloodStreak:
                     disease = VisionDisease.RedFloaters;
                     return true;
                 default:

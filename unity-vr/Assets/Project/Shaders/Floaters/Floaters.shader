@@ -9,6 +9,11 @@ Shader "VisionSimulation/Floaters"
         _GhostOpacity("Ghost Opacity", Range(0, 1)) = 0.42
         _RingOpacity("Ring Opacity", Range(0, 1)) = 0.48
         _WebTexture("Spider Web Texture", 2D) = "black" {}
+        _OverlayRing("Automated Ring Overlay", Range(0, 1)) = 0
+        _OverlayDots("Automated Dot Overlay", Range(0, 1)) = 0
+        _OverlayRed("Automated Blood Overlay", Range(0, 1)) = 0
+        _CurtainOverlay("Automated Curtain Overlay", Range(0, 1)) = 0
+        _BlackoutOverlay("Automated Blackout Overlay", Range(0, 1)) = 0
     }
     SubShader
     {
@@ -25,6 +30,8 @@ Shader "VisionSimulation/Floaters"
 
             float _EffectEnabled, _Severity, _FloaterType, _MovementSpeed;
             float _GhostOpacity, _RingOpacity;
+            float _OverlayRing, _OverlayDots, _OverlayRed;
+            float _CurtainOverlay, _BlackoutOverlay;
             TEXTURE2D(_WebTexture);
             SAMPLER(sampler_WebTexture);
 
@@ -219,6 +226,48 @@ Shader "VisionSimulation/Floaters"
                     redMask *= lerp(0.78, 0.98, _Severity);
                 }
 
+                // Automated disease timelines retain earlier symptoms while a
+                // later floater/flash type is active in this single render pass.
+                if (_OverlayRing > 0.001)
+                {
+                    float2 c = driftingPosition(2.3, time);
+                    c.x = (c.x - 0.5) * aspect + 0.5;
+                    float2 delta = shapeUV - c;
+                    float angle = atan2(delta.y, delta.x);
+                    float radius = 0.037;
+                    float amoebaRadius = radius * (1.0 + 0.13 * sin(angle * 3.0 + time * 0.7)
+                        + 0.09 * sin(angle * 5.0 - 1.2) + 0.05 * cos(angle * 2.0 + 0.8));
+                    lightMask = max(lightMask,
+                        (1.0 - smoothstep(0.0015, 0.006, abs(length(delta) - amoebaRadius)))
+                        * _RingOpacity * _OverlayRing);
+                }
+
+                if (_OverlayDots > 0.001)
+                {
+                    [unroll] for (int i = 0; i < 18; i++)
+                    {
+                        float2 c = centralDriftingPosition(i + 30.0, time);
+                        c.x = (c.x - 0.5) * aspect + 0.5;
+                        float radius = lerp(0.0025, 0.007, hash11(i + 19.0));
+                        // Overlay strength controls when the dots appear, not
+                        // their opacity: retained black dots stay fully opaque.
+                        darkMask = max(darkMask, softDot(shapeUV, c, radius, 0.002));
+                    }
+                }
+
+                if (_OverlayRed > 0.001)
+                {
+                    float2 first = shapeUV - float2(0.34, 0.60);
+                    float firstCurve = sin(first.y * 18.0 + 0.4) * 0.020 + first.y * 0.16;
+                    float firstBody = 1.0 - smoothstep(0.0030, 0.0105, abs(first.x - firstCurve));
+                    float firstEnds = 1.0 - smoothstep(0.13, 0.21, abs(first.y));
+                    float2 second = shapeUV - float2(0.70, 0.42);
+                    float secondCurve = second.y * second.y * 0.55 - second.y * 0.09 + sin(second.y * 11.0 - 0.8) * 0.008;
+                    float secondBody = 1.0 - smoothstep(0.0028, 0.0095, abs(second.x - secondCurve));
+                    float secondEnds = 1.0 - smoothstep(0.11, 0.19, abs(second.y));
+                    redMask = max(redMask, saturate(firstBody * firstEnds + secondBody * secondEnds) * _OverlayRed);
+                }
+
                 source.rgb = lerp(source.rgb, half3(0,0,0), saturate(darkMask));
                 half3 flashColour = half3(1.0h, 0.97h, 0.78h);
                 source.rgb = lerp(source.rgb, flashColour, saturate(lightMask));
@@ -227,6 +276,16 @@ Shader "VisionSimulation/Floaters"
                 source.rgb = saturate(lerp(luminance.xxx, source.rgb, 1.08) * 1.07);
                 // Vivid blood red (#D11212 in the project's linear colour space).
                 source.rgb = lerp(source.rgb, half3(0.637597h, 0.006049h, 0.006049h), saturate(redMask));
+                if (_CurtainOverlay > 0.001)
+                {
+                    float advancingEdge = lerp(0.015, 1.04, _CurtainOverlay);
+                    float unevenEdge = advancingEdge
+                        + sin(uv.y * 17.0 + 0.7) * 0.018
+                        + sin(uv.y * 31.0 - 1.1) * 0.009;
+                    float curtain = 1.0 - smoothstep(unevenEdge - 0.018, unevenEdge + 0.018, uv.x);
+                    source.rgb = lerp(source.rgb, half3(0, 0, 0), curtain);
+                }
+                source.rgb = lerp(source.rgb, half3(0, 0, 0), _BlackoutOverlay);
                 return source;
             }
             ENDHLSL

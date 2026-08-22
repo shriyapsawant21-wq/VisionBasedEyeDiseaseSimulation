@@ -159,15 +159,16 @@
                   "enum": [
                     "METAMORPHOPSIA",
                     "CENTRAL_BLUR",
+                    "CENTRAL_SCOTOMA",
                     "TUNNEL_VISION",
                     "RETINAL_DETACHMENT",
                     "PVD_WEISS_RING",
                     "PVD_DOT",
                     "GHOST_FLOATERS",
-                    "CENTRAL_SCOTOMA",
+                    "RED_FLOATERS",
+                    "BLOOD_STREAK",
                     "RD_FLASH",
-                    "CURTAIN_SIGN",
-                    "RED_FLOATERS"
+                    "CURTAIN"
                   ]
                 }
               },
