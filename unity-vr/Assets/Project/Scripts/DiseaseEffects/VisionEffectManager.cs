@@ -206,8 +206,8 @@ namespace VisionSimulation.DiseaseEffects
                             0f,
                             progress >= 0.68f ? 1f : 0f);
                         drFloaters.SetEndingOverlays(
-                            0f,
-                            progress >= 0.84f ? Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.84f, 1f, progress)) : 0f);
+                            progress >= 0.84f ? Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.84f, 1f, progress)) : 0f,
+                            0f);
                     }
                     break;
                 case "CNVM":
