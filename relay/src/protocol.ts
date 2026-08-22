@@ -176,11 +176,19 @@ export const EndSessionSchema = z.object({
   payload: z.object({}).optional(),
 });
 
+/**
+ * DiseaseEnum plus "NONE", used only for reporting current state back - never
+ * accepted as a SET_DISEASE payload, where "pick nothing" is meaningless. Kept
+ * distinct from DiseaseEnum instead of adding NONE there directly, so the two
+ * message directions can't be confused with each other.
+ */
+export const StateDiseaseEnum = z.enum([...DiseaseEnum.options, "NONE"]);
+
 export const StateUpdatedSchema = z.object({
   ...base,
   type: z.literal("STATE_UPDATED"),
   payload: z.object({
-    disease: DiseaseEnum,
+    disease: StateDiseaseEnum,
     severity: z.number().min(0).max(1),
     comparison: ComparisonEnum,
     scene: SceneEnum,
@@ -239,6 +247,7 @@ export const ClientMessageSchema = z.discriminatedUnion("type", [
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
 export type Disease = z.infer<typeof DiseaseEnum>;
+export type StateDisease = z.infer<typeof StateDiseaseEnum>;
 export type DiseaseProgram = z.infer<typeof DiseaseProgramEnum>;
 export type Scene = z.infer<typeof SceneEnum>;
 export type Comparison = z.infer<typeof ComparisonEnum>;

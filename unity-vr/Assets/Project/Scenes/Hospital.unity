@@ -892,7 +892,7 @@ MonoBehaviour:
   severityStep: 0.1
   gardenSceneName: Garden
   hospitalSceneName: Hospital
-  toggleSceneOnScreenTap: 1
+  toggleSceneOnScreenTap: 0
 --- !u!114 &1550169589
 MonoBehaviour:
   m_ObjectHideFlags: 0

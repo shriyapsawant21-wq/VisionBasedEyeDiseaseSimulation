@@ -4,13 +4,15 @@ import {
   type DiseaseProgram,
   type Comparison,
   type Scene,
+  type StateDisease,
 } from "../../relay/src/protocol";
 
 // Uses the ambient WebSocket global (React Native and browsers both provide
 // one with the same WHATWG API) instead of the Node-only "ws" package.
 
 export interface ControllerState {
-  disease: Disease;
+  /** "NONE" until a disease/symptom has actually been selected on the headset. */
+  disease: StateDisease;
   severity: number;
   comparison: Comparison;
   scene: Scene;

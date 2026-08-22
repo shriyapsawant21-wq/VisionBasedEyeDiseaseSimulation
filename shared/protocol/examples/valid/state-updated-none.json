@@ -1,0 +1,1 @@
+{ "v": 1, "type": "STATE_UPDATED", "seq": 17, "timestamp": 1787234105123, "payload": { "disease": "NONE", "severity": 0, "comparison": "NORMAL", "scene": "HOSPITAL" } }
