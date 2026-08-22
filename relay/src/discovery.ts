@@ -42,6 +42,26 @@ export function findLanAddress(remoteAddress: string): string | null {
   return null;
 }
 
+function sendResponseFrom(
+  response: string,
+  sourceAddress: string,
+  remotePort: number,
+  remoteAddress: string,
+  logger: (event: string, fields: Record<string, unknown>) => void,
+): void {
+  const reply = createSocket("udp4");
+  reply.unref();
+  reply.once("error", (error) => {
+    logger("discovery_reply_error", { message: error.message, sourceAddress });
+  });
+  reply.bind(0, sourceAddress, () => {
+    reply.send(response, remotePort, remoteAddress, (error) => {
+      if (error) logger("discovery_reply_error", { message: error.message, sourceAddress });
+      reply.close();
+    });
+  });
+}
+
 /** Lets simulation devices find this relay on the local network without an IP field. */
 export function startDiscovery(
   port: number,
@@ -54,7 +74,8 @@ export function startDiscovery(
     const advertisedHost = findLanAddress(remote.address);
     if (advertisedHost === null) return;
     const response = createDiscoveryResponse(message.toString("utf8"), advertisedHost, port, privateKey);
-    if (response !== null) socket.send(response, remote.port, remote.address);
+    if (response !== null)
+      sendResponseFrom(response, advertisedHost, remote.port, remote.address, logger);
   });
   socket.on("error", (error) => logger("discovery_error", { message: error.message }));
   socket.bind(DISCOVERY_PORT, "0.0.0.0", () => {
