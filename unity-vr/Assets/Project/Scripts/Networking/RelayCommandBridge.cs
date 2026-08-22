@@ -23,6 +23,7 @@ namespace VisionSimulation.Networking
         [SerializeField] private RelaySession session;
 
         private RelaySession boundSession;
+        private VisionEffectManager boundEffectManager;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install()
@@ -47,15 +48,33 @@ namespace VisionSimulation.Networking
 
             if (effectManager == null)
                 effectManager = FindAnyObjectByType<VisionEffectManager>();
+
+            if (effectManager != boundEffectManager)
+            {
+                if (boundEffectManager != null)
+                    boundEffectManager.StateChanged -= HandleEffectStateChanged;
+
+                boundEffectManager = effectManager;
+
+                if (boundEffectManager != null)
+                    boundEffectManager.StateChanged += HandleEffectStateChanged;
+            }
         }
 
         private void OnDisable()
         {
+            if (boundEffectManager != null)
+            {
+                boundEffectManager.StateChanged -= HandleEffectStateChanged;
+                boundEffectManager = null;
+            }
+
             if (boundSession == null)
                 return;
 
             boundSession.CommandReceived -= HandleCommand;
             boundSession.SessionEnded -= HandleSessionEnded;
+            boundSession.Paired -= HandlePaired;
             boundSession = null;
         }
 
@@ -68,6 +87,7 @@ namespace VisionSimulation.Networking
             boundSession = target;
             boundSession.CommandReceived += HandleCommand;
             boundSession.SessionEnded += HandleSessionEnded;
+            boundSession.Paired += HandlePaired;
         }
 
         private void HandleSessionEnded()
@@ -76,6 +96,39 @@ namespace VisionSimulation.Networking
             // losing control must not strand the wearer inside an effect.
             if (effectManager != null)
                 effectManager.ResetSimulation();
+        }
+
+        /// <summary>
+        /// A controller that just paired - fresh or reconnecting - has no way
+        /// to know what the wearer is currently seeing until Unity says so.
+        /// Without this, a reconnect resets the dashboard to defaults even
+        /// though the simulation itself never changed.
+        /// </summary>
+        private void HandlePaired() => SendCurrentState();
+
+        /// <summary>
+        /// Echoes state after any change to VisionEffectManager, regardless
+        /// of whether a relay command or the in-headset debug controls
+        /// caused it, so the controller never has to guess what the wearer
+        /// actually sees.
+        /// </summary>
+        private void HandleEffectStateChanged() => SendCurrentState();
+
+        private void SendCurrentState()
+        {
+            if (boundSession == null || effectManager == null)
+                return;
+
+            // Nothing has been chosen yet; the wire protocol's DiseaseEnum
+            // has no "none" value, so there is nothing valid to report.
+            if (!TryToWireDisease(effectManager.CurrentDisease, out string disease))
+                return;
+
+            boundSession.SendStateUpdated(
+                disease,
+                effectManager.Severity,
+                effectManager.AffectedVision ? RelayProtocol.ComparisonAffected : RelayProtocol.ComparisonNormal,
+                RelayProtocol.SceneGarden);
         }
 
         private void HandleCommand(string type, string json)
@@ -168,6 +221,38 @@ namespace VisionSimulation.Networking
                     return true;
                 default:
                     disease = VisionDisease.None;
+                    return false;
+            }
+        }
+
+        /// <summary>Inverse of <see cref="TryParseDisease"/>, for STATE_UPDATED.</summary>
+        private static bool TryToWireDisease(VisionDisease disease, out string wireValue)
+        {
+            switch (disease)
+            {
+                case VisionDisease.Metamorphopsia:
+                    wireValue = RelayProtocol.DiseaseMetamorphopsia;
+                    return true;
+                case VisionDisease.CentralBlur:
+                    wireValue = RelayProtocol.DiseaseCentralBlur;
+                    return true;
+                case VisionDisease.TunnelVision:
+                    wireValue = RelayProtocol.DiseaseTunnelVision;
+                    return true;
+                case VisionDisease.PosteriorVitreousDetachmentRing:
+                    wireValue = RelayProtocol.DiseasePvdWeissRing;
+                    return true;
+                case VisionDisease.PosteriorVitreousDetachmentDot:
+                    wireValue = RelayProtocol.DiseasePvdDot;
+                    return true;
+                case VisionDisease.GhostFloaters:
+                    wireValue = RelayProtocol.DiseaseGhostFloaters;
+                    return true;
+                case VisionDisease.BlackFloaters:
+                    wireValue = RelayProtocol.DiseaseRetinalDetachment;
+                    return true;
+                default:
+                    wireValue = null;
                     return false;
             }
         }
