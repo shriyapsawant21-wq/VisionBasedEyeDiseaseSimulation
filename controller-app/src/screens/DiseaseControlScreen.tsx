@@ -67,7 +67,7 @@ export function DiseaseControlScreen({ route, navigation }: Props) {
           <Text style={styles.backLabel}>‹ Back</Text>
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {info.shortLabel}
+          {entry?.cardLabel || info.shortLabel}
         </Text>
         <View style={{ width: 48 }} />
       </View>
