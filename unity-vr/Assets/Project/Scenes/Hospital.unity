@@ -162,7 +162,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0c738547a4548ca4aa5203525f983dbd, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VisionSimulation.VR.DesktopMouseLook
   cameraPivot: {fileID: 212029767}
   sensitivity: 0.15
@@ -277,7 +277,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 2
@@ -324,7 +324,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.UI.InputSystemUIInputModule
   m_SendPointerHoverToParent: 1
   m_MoveRepeatDelay: 0.5
@@ -355,7 +355,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventSystem
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
@@ -399,14 +399,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 907292807}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.49, y: 0, z: 13.45}
+  m_LocalRotation: {x: -0, y: 0.94362146, z: -0, w: 0.33102664}
+  m_LocalPosition: {x: -3.4900005, y: 0, z: 13.45}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 212029767}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 141.338, z: 0}
 --- !u!1 &959308587
 GameObject:
   m_ObjectHideFlags: 0
@@ -503,7 +503,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 959308587}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -521,8 +521,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c2fadf230d1919748a9aa21d40f74619, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   m_TrackingType: 1
   m_UpdateType: 2
   m_IgnoreTrackingState: 0
@@ -531,17 +531,17 @@ MonoBehaviour:
     m_Action:
       m_Name: Position Input
       m_Type: 0
-      m_ExpectedControlType:
+      m_ExpectedControlType: 
       m_Id: dc14070c-ed50-427c-b3fb-6e368afa597a
-      m_Processors:
-      m_Interactions:
+      m_Processors: 
+      m_Interactions: 
       m_SingletonActionBindings:
-      - m_Name:
+      - m_Name: 
         m_Id: 23345476-ed2d-40ff-b608-e2f0191dd89b
         m_Path: <XRHMD>/centerEyePosition
-        m_Interactions:
-        m_Processors:
-        m_Groups:
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
         m_Action: Position Input
         m_Flags: 0
       m_Flags: 0
@@ -551,17 +551,17 @@ MonoBehaviour:
     m_Action:
       m_Name: Rotation Input
       m_Type: 0
-      m_ExpectedControlType:
+      m_ExpectedControlType: 
       m_Id: 13038951-d641-4b7a-8826-8d10fc43cbb4
-      m_Processors:
-      m_Interactions:
+      m_Processors: 
+      m_Interactions: 
       m_SingletonActionBindings:
-      - m_Name:
+      - m_Name: 
         m_Id: 4160e9e6-cf01-4dbb-8572-30a400509798
         m_Path: <XRHMD>/centerEyeRotation
-        m_Interactions:
-        m_Processors:
-        m_Groups:
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
         m_Action: Rotation Input
         m_Flags: 0
       m_Flags: 0
@@ -571,29 +571,29 @@ MonoBehaviour:
     m_Action:
       m_Name: Tracking State Input
       m_Type: 0
-      m_ExpectedControlType:
+      m_ExpectedControlType: 
       m_Id: fe0bb821-1b1e-40c1-a16d-72eab8d0db43
-      m_Processors:
-      m_Interactions:
+      m_Processors: 
+      m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 0}
   m_PositionAction:
-    m_Name:
+    m_Name: 
     m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
+    m_ExpectedControlType: 
+    m_Id: 
+    m_Processors: 
+    m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
   m_RotationAction:
-    m_Name:
+    m_Name: 
     m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
+    m_ExpectedControlType: 
+    m_Id: 
+    m_Processors: 
+    m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
 --- !u!114 &959308595
@@ -606,7 +606,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
   m_RenderShadows: 1
   m_RequiresDepthTextureOption: 2
@@ -839,7 +839,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: f4551ff85a3bbe349b5f34e19b14dcca, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
+      value: -90
       objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: f4551ff85a3bbe349b5f34e19b14dcca, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
@@ -886,7 +886,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e37d44b7f73d0b14f83cad748ce73cd7, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VisionSimulation.UI.VisionDebugControls
   effectManager: {fileID: 1550169590}
   severityStep: 0.1
@@ -903,7 +903,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 873234cf1e49c7048a8a0f513b1878d0, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VisionSimulation.DiseaseEffects.TunnelVisionEffect
   tunnelVisionMaterial: {fileID: 2100000, guid: 7f8ca4bba899afb44ab15b6dce924fed, type: 2}
   mildClearRadius: 0.82
@@ -922,7 +922,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ab2faa2f06286f34f8adb9b67c39cba3, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VisionSimulation.DiseaseEffects.VisionEffectManager
   currentDisease: 0
   severity: 0
@@ -957,7 +957,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cbe66a2d322ba0148a2c18d3dea15d9b, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VisionSimulation.DiseaseEffects.CentralBlurEffect
   centralBlurMaterial: {fileID: 2100000, guid: b4a3019b4fb7f804e98d1c80ee971006, type: 2}
   severeMaskRadius: 0.35
@@ -974,7 +974,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 48426a4b274bd1741a87a73bd996e761, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VisionSimulation.DiseaseEffects.MetamorphopsiaEffect
   metamorphopsiaMaterial: {fileID: 2100000, guid: 01384707d6e1fa742b2f3271266b67db, type: 2}
   maximumWarpStrength: 0.03
@@ -991,7 +991,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 93b46b7dde0d4dd6b498634b53d2c07c, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VisionSimulation.DiseaseEffects.FloatersEffect
   floatersMaterial: {fileID: 2100000, guid: 934f3074ca0b45b088b19805f3a6bc84, type: 2}
   floaterType: 0
@@ -1026,7 +1026,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 2
