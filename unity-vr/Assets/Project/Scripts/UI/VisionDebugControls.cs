@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using VisionSimulation.Core;
 using VisionSimulation.DiseaseEffects;
 
@@ -10,16 +9,6 @@ namespace VisionSimulation.UI
     {
         [SerializeField] private VisionEffectManager effectManager;
         [SerializeField, Range(0.01f, 0.5f)] private float severityStep = 0.1f;
-        [Header("Scene toggle")]
-        [SerializeField] private string gardenSceneName = "Garden";
-        [SerializeField] private string hospitalSceneName = "Hospital";
-        [Tooltip(
-            "In a Cardboard viewer the trigger IS a screen tap, so leaving this " +
-            "on flips the scene - and wipes the running simulation, since a " +
-            "scene load destroys the current VisionEffectManager - on every " +
-            "accidental press. Off by default; this is a debug convenience for " +
-            "testing without a keyboard, not something to ship live.")]
-        [SerializeField] private bool toggleSceneOnScreenTap = false;
 
         private void Awake()
         {
@@ -34,12 +23,6 @@ namespace VisionSimulation.UI
         {
             if (effectManager == null)
                 return;
-
-            bool keyboardToggle = Keyboard.current != null && Keyboard.current.tabKey.wasPressedThisFrame;
-            bool touchToggle = toggleSceneOnScreenTap && Touchscreen.current != null &&
-                               Touchscreen.current.primaryTouch.press.wasPressedThisFrame;
-            if (keyboardToggle || touchToggle)
-                ToggleScene();
 
             if (Keyboard.current == null)
                 return;
@@ -82,22 +65,5 @@ namespace VisionSimulation.UI
                 effectManager.ToggleComparison();
         }
 
-        /// <summary>
-        /// Switches only the environment scene. Both scenes keep their own
-        /// identical simulation rig and disease-effect configuration.
-        /// This public method can also be assigned to a Unity UI Button.
-        /// </summary>
-        public void ToggleScene()
-        {
-            string current = SceneManager.GetActiveScene().name;
-            string target = current == hospitalSceneName ? gardenSceneName : hospitalSceneName;
-            if (!Application.CanStreamedLevelBeLoaded(target))
-            {
-                Debug.LogError($"[VisionDebugControls] Scene '{target}' is not enabled in Build Settings.");
-                return;
-            }
-
-            SceneManager.LoadScene(target);
-        }
     }
 }

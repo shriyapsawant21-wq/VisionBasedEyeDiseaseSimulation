@@ -179,14 +179,26 @@ namespace VisionSimulation.UI
 
         public static RawImage CreateRawImage(Transform parent, float size)
         {
-            var go = new GameObject("RawImage", typeof(RawImage), typeof(LayoutElement));
-            go.transform.SetParent(parent, worldPositionStays: false);
+            // VerticalLayoutGroup expands its direct children to the column
+            // width. Put the QR inside a fixed-height wrapper, then fit a square
+            // inside that wrapper so wide phone screens cannot stretch it.
+            var wrapper = new GameObject("RawImageContainer", typeof(RectTransform), typeof(LayoutElement));
+            wrapper.transform.SetParent(parent, worldPositionStays: false);
 
-            var layout = go.GetComponent<LayoutElement>();
-            layout.minWidth = size;
+            var layout = wrapper.GetComponent<LayoutElement>();
             layout.minHeight = size;
-            layout.preferredWidth = size;
             layout.preferredHeight = size;
+            layout.flexibleHeight = 0f;
+
+            var go = new GameObject("RawImage", typeof(RawImage), typeof(AspectRatioFitter));
+            go.transform.SetParent(wrapper.transform, worldPositionStays: false);
+
+            var rect = go.GetComponent<RectTransform>();
+            Stretch(rect);
+
+            var aspect = go.GetComponent<AspectRatioFitter>();
+            aspect.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+            aspect.aspectRatio = 1f;
 
             return go.GetComponent<RawImage>();
         }
