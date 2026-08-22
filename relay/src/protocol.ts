@@ -26,6 +26,7 @@ export const DiseaseEnum = z.enum([
   "PVD_DOT",
   "GHOST_FLOATERS",
   "RED_FLOATERS",
+  "BLOOD_STREAK",
   "RD_FLASH",
   "CURTAIN",
 ]);

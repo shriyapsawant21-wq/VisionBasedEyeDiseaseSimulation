@@ -75,7 +75,14 @@ export const DISEASE_INFO: Record<Disease, DiseaseInfo> = {
     disease: "RED_FLOATERS",
     shortLabel: "Red Floaters",
     clinicalLabel: "Vitreous Haemorrhage",
-    symptomName: "Red Floaters / Blood Streaks",
+    symptomName: "Red Floaters",
+    severityLabel: "Floater Density",
+  },
+  BLOOD_STREAK: {
+    disease: "BLOOD_STREAK",
+    shortLabel: "Blood Streak",
+    clinicalLabel: "Blood Streak",
+    symptomName: "Blood Streak",
     severityLabel: "Streak Density",
   },
   RD_FLASH: {
@@ -134,6 +141,7 @@ export const SYMPTOM_ENTRIES: DiseaseEntry[] = [
   { key: "TUNNEL_VISION", cardLabel: "Tunnel Vision", variants: ["TUNNEL_VISION"] },
   { key: "RD_FLASH", cardLabel: "RD Flash", variants: ["RD_FLASH"] },
   { key: "CURTAIN", cardLabel: "Curtain", variants: ["CURTAIN"] },
+  { key: "BLOOD_STREAK", cardLabel: "Blood Streak", variants: ["BLOOD_STREAK"] },
 ];
 
 /** The floater types, reached from the Floaters entry. */
@@ -142,7 +150,7 @@ export const FLOATER_ENTRIES: DiseaseEntry[] = [
   { key: "BLACK_DOT", cardLabel: "Black Dot", variants: ["PVD_DOT"] },
   { key: "GHOST_WORMS", cardLabel: "Ghost Worms", variants: ["GHOST_FLOATERS"] },
   { key: "BLACK_FLOATERS", cardLabel: "Black Floaters", variants: ["RETINAL_DETACHMENT"] },
-  { key: "RED_FLOATERS", cardLabel: "Red Floater / Blood Streak", variants: ["RED_FLOATERS"] },
+  { key: "RED_FLOATERS", cardLabel: "Red Floaters", variants: ["RED_FLOATERS"] },
 ];
 
 export const ALL_ENTRIES: DiseaseEntry[] = [
@@ -229,7 +237,7 @@ export const DISEASE_PROGRAMS: DiseaseProgram[] = [
     stages: [
       { at: 0, label: "Central blurring", adds: ["CENTRAL_BLUR"], severity: 0.3 },
       { at: 6, label: "Ring PVD forms", adds: ["PVD_WEISS_RING"], severity: 0.4 },
-      { at: 13, label: "Red floaters / blood streaks", adds: ["RED_FLOATERS"], severity: 0.6 },
+      { at: 13, label: "Red floaters and blood streaks", adds: ["RED_FLOATERS", "BLOOD_STREAK"], severity: 0.6 },
       { at: 20, label: "Flashes begin", adds: ["RD_FLASH"], severity: 0.8 },
       { at: 26, label: "Blackout", adds: [], severity: 1, blackout: true },
     ],
