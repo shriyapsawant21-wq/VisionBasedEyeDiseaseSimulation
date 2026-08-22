@@ -3,11 +3,10 @@ import { NavigationContainer, createNavigationContainerRef } from "@react-naviga
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SplashScreen } from "../screens/SplashScreen";
 import { DisclaimerScreen } from "../screens/DisclaimerScreen";
-import { MainTabs } from "./MainTabs";
+import { DashboardScreen } from "../screens/DashboardScreen";
 import { PairingScreen } from "../screens/PairingScreen";
 import { FloaterListScreen } from "../screens/FloaterListScreen";
 import { DiseaseControlScreen } from "../screens/DiseaseControlScreen";
-import { DiseaseProgressionScreen } from "../screens/DiseaseProgressionScreen";
 import { ConnectionLostScreen } from "../screens/ConnectionLostScreen";
 import { useRelayConnector } from "../useRelayConnector";
 import type { Disease } from "../../../relay/src/protocol";
@@ -15,12 +14,10 @@ import type { Disease } from "../../../relay/src/protocol";
 export type RootStackParamList = {
   Splash: undefined;
   Disclaimer: undefined;
-  MainTabs: undefined;
+  Dashboard: undefined;
   Pairing: undefined;
   FloaterList: undefined;
   DiseaseControl: { disease: Disease };
-  /** A disease run, keyed by DISEASE_PROGRAMS entry rather than one Disease. */
-  DiseaseProgression: { programKey: string };
   ConnectionLost: undefined;
 };
 
@@ -41,7 +38,7 @@ function StatusRouter() {
     if (!navigationRef.isReady()) return;
 
     if (status === "paired") {
-      navigationRef.reset({ index: 0, routes: [{ name: "MainTabs" }] });
+      navigationRef.reset({ index: 0, routes: [{ name: "Dashboard" }] });
     } else if (status === "sessionLost") {
       navigationRef.reset({ index: 0, routes: [{ name: "ConnectionLost" }] });
     }
@@ -56,11 +53,10 @@ export function RootNavigator() {
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Disclaimer" component={DisclaimerScreen} />
-        <Stack.Screen name="MainTabs" component={MainTabs} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Pairing" component={PairingScreen} />
         <Stack.Screen name="FloaterList" component={FloaterListScreen} />
         <Stack.Screen name="DiseaseControl" component={DiseaseControlScreen} />
-        <Stack.Screen name="DiseaseProgression" component={DiseaseProgressionScreen} />
         <Stack.Screen name="ConnectionLost" component={ConnectionLostScreen} />
       </Stack.Navigator>
       <StatusRouter />

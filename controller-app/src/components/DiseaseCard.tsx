@@ -25,7 +25,7 @@ export function DiseaseCard({
 }) {
   return (
     <Pressable
-      style={[styles.wrapper, compact && styles.wrapperCompact]}
+      style={[styles.wrapper, compact && styles.wrapperCompact, disabled && styles.disabled]}
       onPress={onPress}
       disabled={disabled}
     >
@@ -58,6 +58,9 @@ const styles = StyleSheet.create({
   },
   wrapperCompact: {
     flex: 1,
+  },
+  disabled: {
+    opacity: 0.45,
   },
   shadowBlock: {
     position: "absolute",
