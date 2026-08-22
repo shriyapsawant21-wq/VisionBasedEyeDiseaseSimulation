@@ -90,7 +90,7 @@ export const DISEASE_ENTRIES: DiseaseEntry[] = [
     key: "RD",
     cardLabel: "RD",
     variants: ["RETINAL_DETACHMENT"],
-    inertVariants: ["Flashes and Curtains"],
+    inertVariants: ["Flashes", "Curtains"],
   },
 ];
 
