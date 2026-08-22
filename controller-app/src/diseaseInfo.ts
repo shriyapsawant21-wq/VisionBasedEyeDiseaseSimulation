@@ -94,10 +94,26 @@ export const DISEASE_ENTRIES: DiseaseEntry[] = [
   },
 ];
 
-/** Reached from the Floaters symptom box, not from the disease list. */
-export const FLOATER_ENTRIES: DiseaseEntry[] = [
-  { key: "PVD", cardLabel: "PVD", variants: ["PVD_WEISS_RING", "PVD_DOT"] },
-  { key: "GHOST", cardLabel: "Ghost Floaters", variants: ["GHOST_FLOATERS"] },
+/**
+ * The Symptoms tab: each symptom on its own, driven manually. Floaters is the
+ * only one with sub-types, so it opens a second list; the rest go straight to
+ * the control screen.
+ */
+export const SYMPTOM_ENTRIES: DiseaseEntry[] = [
+  { key: "CENTRAL_BLUR", cardLabel: "Central Blurring", variants: ["CENTRAL_BLUR"] },
+  { key: "METAMORPHOPSIA", cardLabel: "Metamorphopsia", variants: ["METAMORPHOPSIA"] },
+  { key: "TUNNEL_VISION", cardLabel: "Tunnel Vision", variants: ["TUNNEL_VISION"] },
 ];
 
-export const ALL_ENTRIES: DiseaseEntry[] = [...DISEASE_ENTRIES, ...FLOATER_ENTRIES];
+/** The three floater types, reached from the Floaters entry. */
+export const FLOATER_ENTRIES: DiseaseEntry[] = [
+  { key: "WEISS_RING", cardLabel: "Weiss Ring", variants: ["PVD_WEISS_RING"] },
+  { key: "BLACK_DOT", cardLabel: "Black Dot", variants: ["PVD_DOT"] },
+  { key: "GHOST_WORMS", cardLabel: "Ghost Worms", variants: ["GHOST_FLOATERS"] },
+];
+
+export const ALL_ENTRIES: DiseaseEntry[] = [
+  ...DISEASE_ENTRIES,
+  ...SYMPTOM_ENTRIES,
+  ...FLOATER_ENTRIES,
+];

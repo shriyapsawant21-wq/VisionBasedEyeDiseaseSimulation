@@ -3,7 +3,7 @@ import { NavigationContainer, createNavigationContainerRef } from "@react-naviga
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SplashScreen } from "../screens/SplashScreen";
 import { DisclaimerScreen } from "../screens/DisclaimerScreen";
-import { DashboardScreen } from "../screens/DashboardScreen";
+import { MainTabs } from "./MainTabs";
 import { PairingScreen } from "../screens/PairingScreen";
 import { FloaterListScreen } from "../screens/FloaterListScreen";
 import { DiseaseControlScreen } from "../screens/DiseaseControlScreen";
@@ -14,7 +14,7 @@ import type { Disease } from "../../../relay/src/protocol";
 export type RootStackParamList = {
   Splash: undefined;
   Disclaimer: undefined;
-  Dashboard: undefined;
+  MainTabs: undefined;
   Pairing: undefined;
   FloaterList: undefined;
   DiseaseControl: { disease: Disease };
@@ -38,7 +38,7 @@ function StatusRouter() {
     if (!navigationRef.isReady()) return;
 
     if (status === "paired") {
-      navigationRef.reset({ index: 0, routes: [{ name: "Dashboard" }] });
+      navigationRef.reset({ index: 0, routes: [{ name: "MainTabs" }] });
     } else if (status === "sessionLost") {
       navigationRef.reset({ index: 0, routes: [{ name: "ConnectionLost" }] });
     }
@@ -53,7 +53,7 @@ export function RootNavigator() {
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Disclaimer" component={DisclaimerScreen} />
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="Pairing" component={PairingScreen} />
         <Stack.Screen name="FloaterList" component={FloaterListScreen} />
         <Stack.Screen name="DiseaseControl" component={DiseaseControlScreen} />
