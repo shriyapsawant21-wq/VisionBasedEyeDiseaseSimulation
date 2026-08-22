@@ -11,8 +11,8 @@ namespace VisionSimulation.Networking
     public static class RelayDiscovery
     {
         private const int DiscoveryPort = 8788;
-        private const string RequestPrefix = "VISIONBRIDGE_DISCOVER_V2:";
-        private const string ResponseName = "VISIONBRIDGE_RELAY_V2";
+        private const string RequestPrefix = "VISIONBRIDGE_DISCOVER_V3:";
+        private const string ResponseName = "VISIONBRIDGE_RELAY_V3";
         private const string PublicModulus =
             "sfO+yRGBIX9MSRac17RGoFD+mJIY2Oz9HehbFHx9+ICVCTBYfznlbMtzzPgaH3dOiBE4zJyvVSsTuB169hfHD6Fx7izdOgkfdc+sC60hghfsrhljOgKkg1xoDVRyZ5pi5o8MgHzRUi7fak2JAIpkUcuXZlTOq3eVPF9a0l5+9lLy2b++A3dYeYhtAzfxknpX9akKFcG5Z5L9miELu4zUQv+k1nOIVA+Y3DQllaWCqQlviFoiAvieUi7eUpNjO4883aPaFpBIP1AkvglfTcSbrjnqsMWNj1M9SJC1lBvuT2YEXEa1sze67qcVTnlocw0Yr2GR8Jjkb9opHSHKEakPkw==";
         private const string PublicExponent = "AQAB";
@@ -48,13 +48,17 @@ namespace VisionSimulation.Networking
                     UdpReceiveResult result = await receive.ConfigureAwait(false);
                     string response = Encoding.UTF8.GetString(result.Buffer);
                     string[] parts = response.Split(':');
-                    if (parts.Length != 4 || parts[0] != ResponseName || parts[2] != nonce)
+                    if (parts.Length != 5 || parts[0] != ResponseName || parts[3] != nonce)
                         continue;
 
                     if (!int.TryParse(parts[1], out int port) || port < 1 || port > 65535)
                         continue;
 
-                    if (!VerifySignature(nonce, port, parts[3]))
+                    if (!IPAddress.TryParse(parts[2], out IPAddress advertisedHost) ||
+                        !advertisedHost.Equals(result.RemoteEndPoint.Address))
+                        continue;
+
+                    if (!VerifySignature(nonce, advertisedHost.ToString(), port, parts[4]))
                         continue;
 
                     var builder = new UriBuilder(trustedUri) { Port = port };
@@ -62,13 +66,13 @@ namespace VisionSimulation.Networking
                     // not its current LAN address. Only cleartext LAN URLs need
                     // discovery to replace the host after a DHCP change.
                     if (trustedUri.Scheme == "ws")
-                        builder.Host = result.RemoteEndPoint.Address.ToString();
+                        builder.Host = advertisedHost.ToString();
                     return builder.Uri.AbsoluteUri.TrimEnd('/');
                 }
             }
         }
 
-        private static bool VerifySignature(string nonce, int port, string encodedSignature)
+        private static bool VerifySignature(string nonce, string host, int port, string encodedSignature)
         {
             try
             {
@@ -77,7 +81,7 @@ namespace VisionSimulation.Networking
                     Modulus = Convert.FromBase64String(PublicModulus),
                     Exponent = Convert.FromBase64String(PublicExponent)
                 };
-                byte[] payload = Encoding.UTF8.GetBytes($"{nonce}:{port}");
+                byte[] payload = Encoding.UTF8.GetBytes($"{nonce}:{host}:{port}");
                 byte[] signature = Convert.FromBase64String(encodedSignature);
                 using (RSA rsa = RSA.Create())
                 {

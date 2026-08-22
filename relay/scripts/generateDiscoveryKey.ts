@@ -1,5 +1,5 @@
 import { generateKeyPairSync } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const privateKeyPath = resolve(".discovery-private-key.pem");
@@ -41,7 +41,14 @@ const pinnedSource = withModulus.replace(
   exponentPattern,
   `private const string PublicExponent = "${toBase64(publicKey.e!)}";`,
 );
-writeFileSync(privateKeyPath, privateKey, { mode: 0o600 });
-writeFileSync(unitySourcePath, pinnedSource);
+const privateKeyTempPath = `${privateKeyPath}.tmp-${process.pid}`;
+const unitySourceTempPath = `${unitySourcePath}.tmp-${process.pid}`;
+writeFileSync(privateKeyTempPath, privateKey, { mode: 0o600, flag: "wx" });
+writeFileSync(unitySourceTempPath, pinnedSource, { flag: "wx" });
+
+// Commit the public pin first. If the process stops before the private-key
+// rename, no key exists and rerunning this command safely repairs the setup.
+renameSync(unitySourceTempPath, unitySourcePath);
+renameSync(privateKeyTempPath, privateKeyPath);
 
 console.log(`Generated relay identity and pinned its public key in ${unitySourcePath}`);
