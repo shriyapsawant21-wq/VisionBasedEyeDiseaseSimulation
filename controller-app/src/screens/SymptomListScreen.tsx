@@ -1,15 +1,21 @@
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import type { CompositeScreenProps } from "@react-navigation/native";
+import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
+import type { MainTabsParamList } from "../navigation/MainTabs";
 import { useRelayConnector } from "../useRelayConnector";
-import { DISEASE_PROGRAMS } from "../diseaseInfo";
+import { SYMPTOM_ENTRIES, type DiseaseEntry } from "../diseaseInfo";
 import { OptionsButton } from "../components/OptionsButton";
 import { SidePanel } from "../components/SidePanel";
 import { DiseaseCard } from "../components/DiseaseCard";
 import { colors, spacing, type } from "../theme";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Dashboard">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabsParamList, "Symptoms">,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 function statusLabel(status: string, sessionId: string | null): string {
   switch (status) {
@@ -25,15 +31,21 @@ function statusLabel(status: string, sessionId: string | null): string {
 }
 
 /**
- * Dashboard is the app's persistent home screen (not gated behind pairing)
- * and shows the disease progression programs. Each program is a 30-second
- * auto-play simulation, not a slider-based control.
+ * Symptoms driven on their own, without a disease wrapped around them.
+ * Shares the Dashboard chrome - app name, status and the pairing shortcut in
+ * the header - because the two tabs are peers, not a screen and a sub-screen.
  */
-export function DashboardScreen({ navigation }: Props) {
-  const { status, sessionId, lastError, disconnect } = useRelayConnector();
+export function SymptomListScreen({ navigation }: Props) {
+  const { status, sessionId, lastError, setDisease, disconnect } = useRelayConnector();
   const [panelOpen, setPanelOpen] = useState(false);
 
   const paired = status === "paired";
+
+  function handleSelect(entry: DiseaseEntry) {
+    const disease = entry.variants[0];
+    if (paired) setDisease(disease);
+    navigation.navigate("DiseaseControl", { disease });
+  }
 
   return (
     <View style={styles.root}>
@@ -54,14 +66,13 @@ export function DashboardScreen({ navigation }: Props) {
           </Text>
         ) : null}
 
-        <Text style={styles.sectionLabel}>Disease</Text>
-        {DISEASE_PROGRAMS.map((program) => (
-          <DiseaseCard
-            key={program.key}
-            label={program.cardLabel}
-            onPress={() => navigation.navigate("DiseaseProgression", { programKey: program.key })}
-          />
+        <Text style={styles.sectionLabel}>Symptoms</Text>
+        {SYMPTOM_ENTRIES.map((entry) => (
+          <DiseaseCard key={entry.key} label={entry.cardLabel} onPress={() => handleSelect(entry)} />
         ))}
+
+        {/* the only symptom with sub-types, so it opens a list instead */}
+        <DiseaseCard label="Floaters" onPress={() => navigation.navigate("FloaterList")} />
       </ScrollView>
 
       <SidePanel visible={panelOpen} onClose={() => setPanelOpen(false)}>
@@ -126,13 +137,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textTransform: "uppercase",
     marginBottom: spacing.sm,
-  },
-  sectionLabelSpaced: {
-    marginTop: spacing.md,
-  },
-  symptomRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
   },
   error: {
     marginBottom: spacing.sm,
