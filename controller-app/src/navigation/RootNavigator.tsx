@@ -3,6 +3,7 @@ import { NavigationContainer, createNavigationContainerRef } from "@react-naviga
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SplashScreen } from "../screens/SplashScreen";
 import { DisclaimerScreen } from "../screens/DisclaimerScreen";
+import { DepartmentSelectScreen } from "../screens/DepartmentSelectScreen";
 import { MainTabs } from "./MainTabs";
 import { PairingScreen } from "../screens/PairingScreen";
 import { FloaterListScreen } from "../screens/FloaterListScreen";
@@ -15,6 +16,7 @@ import type { Disease, DiseaseProgram } from "../../../relay/src/protocol";
 export type RootStackParamList = {
   Splash: undefined;
   Disclaimer: undefined;
+  DepartmentSelect: undefined;
   MainTabs: undefined;
   Pairing: undefined;
   FloaterList: undefined;
@@ -55,6 +57,7 @@ export function RootNavigator() {
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Disclaimer" component={DisclaimerScreen} />
+        <Stack.Screen name="DepartmentSelect" component={DepartmentSelectScreen} />
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="Pairing" component={PairingScreen} />
         <Stack.Screen name="FloaterList" component={FloaterListScreen} />
