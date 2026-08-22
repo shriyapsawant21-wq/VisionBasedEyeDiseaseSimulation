@@ -9,7 +9,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Disclaimer">;
 export function DisclaimerScreen({ navigation }: Props) {
   async function handleAgree() {
     await setDisclaimerAccepted();
-    navigation.replace("Dashboard");
+    navigation.replace("MainTabs");
   }
 
   return (

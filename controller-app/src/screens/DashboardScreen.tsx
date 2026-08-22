@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import type { CompositeScreenProps } from "@react-navigation/native";
 import type { RootStackParamList } from "../navigation/RootNavigator";
+import type { MainTabsParamList } from "../navigation/MainTabs";
 import { useRelayConnector } from "../useRelayConnector";
 import { DISEASE_PROGRAMS } from "../diseaseInfo";
 import { OptionsButton } from "../components/OptionsButton";
@@ -9,7 +12,10 @@ import { SidePanel } from "../components/SidePanel";
 import { DiseaseCard } from "../components/DiseaseCard";
 import { colors, spacing, type } from "../theme";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Dashboard">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabsParamList, "Disease">,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 function statusLabel(status: string, sessionId: string | null): string {
   switch (status) {
