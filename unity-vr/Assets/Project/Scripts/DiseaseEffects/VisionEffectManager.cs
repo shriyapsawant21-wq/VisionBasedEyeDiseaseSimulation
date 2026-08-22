@@ -152,9 +152,18 @@ namespace VisionSimulation.DiseaseEffects
             }
 
             ApplyDiseaseTimeline(disease, 1f);
-            // Keep the final untreated phase visible. ResetSimulation (debug
-            // key 0) or selecting another simulation is what clears it.
             diseaseSimulation = null;
+            // Without clearing this, Update() keeps early-returning forever
+            // after a program finishes on its own: SetSeverity() would go on
+            // writing the severity field but nothing ever reapplied it, so
+            // the slider looked dead until a fresh SetDisease/Reset happened
+            // to clear this same flag as a side effect. The tradeoff is that
+            // Update() now resumes immediately and starts moving toward
+            // whatever currentDisease/severity were before the program
+            // started (commonly None/0, since DiseaseProgressionScreen never
+            // calls SetDisease first) - so the final frame fades out over
+            // transitionDuration instead of staying frozen indefinitely.
+            automatedSimulationActive = false;
             StateChanged?.Invoke();
         }
 

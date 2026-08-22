@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { DiseaseEnum, DiseaseProgramEnum, SceneEnum } from "../src/protocol";
+import { DiseaseEnum, DiseaseProgramEnum, SceneEnum, StateDiseaseEnum } from "../src/protocol";
 
 /**
  * unity-vr mirrors protocol.ts by hand, so nothing but a test stops the two
@@ -61,9 +61,9 @@ describe("unity-vr mirrors the protocol", () => {
     expect(missing, "DiseaseEnum values Unity would reject as unknown").toEqual([]);
   });
 
-  it("maps every DiseaseEnum value back out for STATE_UPDATED", () => {
+  it("maps every StateDiseaseEnum value back out for STATE_UPDATED, including NONE", () => {
     const handled = wireValuesHandledBy("TryToWireDisease");
-    const missing = DiseaseEnum.options.filter((value) => !handled.has(value));
+    const missing = StateDiseaseEnum.options.filter((value) => !handled.has(value));
     expect(missing, "VisionDisease values that cannot be reported back").toEqual([]);
   });
 

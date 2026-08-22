@@ -289,6 +289,19 @@ describe("controller commands reach the simulation", () => {
       scene: "GARDEN",
     });
   });
+
+  it("accepts STATE_UPDATED with disease NONE, e.g. right after a scene switch with nothing selected", async () => {
+    const { sim, events } = await pairedPair();
+    sim.send("STATE_UPDATED", {
+      disease: "NONE",
+      severity: 0,
+      comparison: "NORMAL",
+      scene: "HOSPITAL",
+    });
+
+    await waitUntil(() => events.states.length === 1, "STATE_UPDATED on controller");
+    expect(events.states[0].scene).toBe("HOSPITAL");
+  });
 });
 
 describe("teardown paths the app depends on", () => {

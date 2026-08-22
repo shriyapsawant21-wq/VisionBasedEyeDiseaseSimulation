@@ -13,7 +13,13 @@ namespace VisionSimulation.UI
         [Header("Scene toggle")]
         [SerializeField] private string gardenSceneName = "Garden";
         [SerializeField] private string hospitalSceneName = "Hospital";
-        [SerializeField] private bool toggleSceneOnScreenTap = true;
+        [Tooltip(
+            "In a Cardboard viewer the trigger IS a screen tap, so leaving this " +
+            "on flips the scene - and wipes the running simulation, since a " +
+            "scene load destroys the current VisionEffectManager - on every " +
+            "accidental press. Off by default; this is a debug convenience for " +
+            "testing without a keyboard, not something to ship live.")]
+        [SerializeField] private bool toggleSceneOnScreenTap = false;
 
         private void Awake()
         {

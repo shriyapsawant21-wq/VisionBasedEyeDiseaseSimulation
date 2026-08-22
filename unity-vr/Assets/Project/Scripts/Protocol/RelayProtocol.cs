@@ -57,6 +57,13 @@ namespace VisionSimulation.Protocol
         public const string DiseaseRedFloaters = "RED_FLOATERS";
         public const string DiseaseBloodStreak = "BLOOD_STREAK";
 
+        /// <summary>
+        /// STATE_UPDATED-only: reports nothing selected. Never valid as a
+        /// SET_DISEASE payload - the relay's StateDiseaseEnum is DiseaseEnum
+        /// plus this one value, kept separate for exactly that reason.
+        /// </summary>
+        public const string DiseaseNone = "NONE";
+
         // DiseaseProgramEnum values, one per case in
         // VisionEffectManager.ApplyDiseaseTimeline. Distinct from the Disease*
         // constants above: these name a scripted run, not a single effect.

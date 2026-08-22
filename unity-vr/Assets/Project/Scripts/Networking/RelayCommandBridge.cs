@@ -136,10 +136,13 @@ namespace VisionSimulation.Networking
             if (boundSession == null || effectManager == null)
                 return;
 
-            // Nothing has been chosen yet; the wire protocol's DiseaseEnum
-            // has no "none" value, so there is nothing valid to report.
-            if (!TryToWireDisease(effectManager.CurrentDisease, out string disease))
-                return;
+            // TryToWireDisease always succeeds now (VisionDisease.None maps to
+            // the wire's "NONE"), so this always sends. It used to bail out
+            // whenever nothing was selected - which meant a scene switch with
+            // no active disease (the common case right after pairing, or
+            // after Reset) never reached the controller at all, leaving the
+            // Background toggle showing the wrong scene indefinitely.
+            TryToWireDisease(effectManager.CurrentDisease, out string disease);
 
             boundSession.SendStateUpdated(
                 disease,
@@ -387,11 +390,20 @@ namespace VisionSimulation.Networking
             }
         }
 
-        /// <summary>Inverse of <see cref="TryParseDisease"/>, for STATE_UPDATED.</summary>
+        /// <summary>
+        /// Inverse of <see cref="TryParseDisease"/>, for STATE_UPDATED. Unlike
+        /// TryParseDisease, this one is total: VisionDisease.None maps to the
+        /// wire's "NONE" rather than failing, since STATE_UPDATED's
+        /// StateDiseaseEnum (unlike SET_DISEASE's DiseaseEnum) has a value
+        /// for "nothing selected".
+        /// </summary>
         private static bool TryToWireDisease(VisionDisease disease, out string wireValue)
         {
             switch (disease)
             {
+                case VisionDisease.None:
+                    wireValue = RelayProtocol.DiseaseNone;
+                    return true;
                 case VisionDisease.Metamorphopsia:
                     wireValue = RelayProtocol.DiseaseMetamorphopsia;
                     return true;

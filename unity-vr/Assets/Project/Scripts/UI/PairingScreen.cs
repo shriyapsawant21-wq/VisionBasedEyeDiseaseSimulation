@@ -240,10 +240,11 @@ namespace VisionSimulation.UI
         {
             bool editingAllowed = session.State != RelaySessionState.Paired;
             relayUrlField.interactable = editingAllowed;
-            // Discovery normally supplies this automatically. Keep the field
-            // hidden during normal operation; failure details still show the
-            // discovered/fallback address for troubleshooting.
-            relayUrlField.gameObject.SetActive(false);
+            // Discovery normally supplies this automatically, but when it's
+            // disabled or finds a stale address, this is the only way to
+            // point the headset at the right relay - there is no other
+            // recovery path once the discovered/fallback URL is wrong.
+            relayUrlField.gameObject.SetActive(editingAllowed);
 
             switch (session.State)
             {
