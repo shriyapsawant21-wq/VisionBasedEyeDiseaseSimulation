@@ -82,4 +82,3 @@ float4 BlendARGB(float4 overlying, float4 underlying)
 	return float4(blended, alpha);
 }
 
-

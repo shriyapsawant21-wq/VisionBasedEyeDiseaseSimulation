@@ -53,9 +53,8 @@ namespace VisionSimulation.Protocol
         public const string DiseaseGhostFloaters = "GHOST_FLOATERS";
         public const string DiseaseCentralScotoma = "CENTRAL_SCOTOMA";
         public const string DiseaseRetinalDetachmentFlash = "RD_FLASH";
-        public const string DiseaseCurtainSign = "CURTAIN";
+        public const string DiseaseCurtainSign = "CURTAIN_SIGN";
         public const string DiseaseRedFloaters = "RED_FLOATERS";
-        public const string DiseaseBloodStreak = "BLOOD_STREAK";
 
         public const string ComparisonNormal = "NORMAL";
         public const string ComparisonAffected = "AFFECTED";

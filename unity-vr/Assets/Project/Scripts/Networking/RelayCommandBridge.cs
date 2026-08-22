@@ -239,7 +239,6 @@ namespace VisionSimulation.Networking
                     disease = VisionDisease.CurtainSign;
                     return true;
                 case RelayProtocol.DiseaseRedFloaters:
-                case RelayProtocol.DiseaseBloodStreak:
                     disease = VisionDisease.RedFloaters;
                     return true;
                 default:
