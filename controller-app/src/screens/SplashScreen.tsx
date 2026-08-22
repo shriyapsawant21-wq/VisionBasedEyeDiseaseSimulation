@@ -20,7 +20,7 @@ export function SplashScreen({ navigation }: Props) {
       ]);
       if (cancelled) return;
 
-      navigation.replace(accepted ? "Dashboard" : "Disclaimer");
+      navigation.replace(accepted ? "MainTabs" : "Disclaimer");
     }
 
     decideNextScreen();

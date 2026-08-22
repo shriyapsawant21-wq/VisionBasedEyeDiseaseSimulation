@@ -24,8 +24,8 @@ export const DISEASE_INFO: Record<Disease, DiseaseInfo> = {
   },
   CENTRAL_SCOTOMA: {
     disease: "CENTRAL_SCOTOMA",
-    shortLabel: "CNVM/DME/CME",
-    clinicalLabel: "CNVM / DME / CME",
+    shortLabel: "Central Scotoma",
+    clinicalLabel: "Central Scotoma",
     symptomName: "Central Scotoma",
     severityLabel: "Scotoma Size",
   },
@@ -71,26 +71,33 @@ export const DISEASE_INFO: Record<Disease, DiseaseInfo> = {
     symptomName: "Ghost Worms",
     severityLabel: "Worm Count",
   },
-  RD_FLASH: {
-    disease: "RD_FLASH",
-    shortLabel: "RD",
-    clinicalLabel: "Retinal Detachment (RD)",
-    symptomName: "Persistent Light Flash",
-    severityLabel: "Flash Size",
-  },
-  CURTAIN_SIGN: {
-    disease: "CURTAIN_SIGN",
-    shortLabel: "RD",
-    clinicalLabel: "Retinal Detachment (RD)",
-    symptomName: "Curtain Sign",
-    severityLabel: "Curtain Coverage",
-  },
   RED_FLOATERS: {
     disease: "RED_FLOATERS",
-    shortLabel: "RD",
-    clinicalLabel: "Retinal Detachment (RD)",
-    symptomName: "Blood Streaks",
-    severityLabel: "Streak Intensity",
+    shortLabel: "Red Floaters",
+    clinicalLabel: "Vitreous Haemorrhage",
+    symptomName: "Red Floaters",
+    severityLabel: "Floater Density",
+  },
+  BLOOD_STREAK: {
+    disease: "BLOOD_STREAK",
+    shortLabel: "Blood Streak",
+    clinicalLabel: "Blood Streak",
+    symptomName: "Blood Streak",
+    severityLabel: "Streak Density",
+  },
+  RD_FLASH: {
+    disease: "RD_FLASH",
+    shortLabel: "Flashes",
+    clinicalLabel: "Photopsia (RD Flashes)",
+    symptomName: "Flashes",
+    severityLabel: "Flash Intensity",
+  },
+  CURTAIN: {
+    disease: "CURTAIN",
+    shortLabel: "Curtain",
+    clinicalLabel: "Curtain / Shadow (RD)",
+    symptomName: "Curtain",
+    severityLabel: "Curtain Coverage",
   },
 };
 
@@ -111,20 +118,162 @@ export interface DiseaseEntry {
 }
 
 export const DISEASE_ENTRIES: DiseaseEntry[] = [
-  { key: "CNVM", cardLabel: "CNVM/DME/CME", variants: ["CENTRAL_BLUR", "CENTRAL_SCOTOMA"] },
+  { key: "CNVM", cardLabel: "CNVM/DME/CME", variants: ["CENTRAL_BLUR"] },
   { key: "CSCR", cardLabel: "CSCR", variants: ["METAMORPHOPSIA"] },
   { key: "RP", cardLabel: "RP", variants: ["TUNNEL_VISION"] },
   {
     key: "RD",
     cardLabel: "RD",
-    variants: ["RETINAL_DETACHMENT", "RD_FLASH", "CURTAIN_SIGN", "RED_FLOATERS"],
+    variants: ["RETINAL_DETACHMENT"],
+    inertVariants: ["Flashes", "Curtains"],
   },
 ];
 
-/** Reached from the Floaters symptom box, not from the disease list. */
-export const FLOATER_ENTRIES: DiseaseEntry[] = [
-  { key: "PVD", cardLabel: "PVD", variants: ["PVD_WEISS_RING", "PVD_DOT"] },
-  { key: "GHOST", cardLabel: "Ghost Floaters", variants: ["GHOST_FLOATERS"] },
+/**
+ * The Symptoms tab: each symptom on its own, driven manually. Floaters is the
+ * only one with sub-types, so it opens a second list; the rest go straight to
+ * the control screen.
+ */
+export const SYMPTOM_ENTRIES: DiseaseEntry[] = [
+  { key: "CENTRAL_BLUR", cardLabel: "Central Blurring", variants: ["CENTRAL_BLUR"] },
+  { key: "CENTRAL_SCOTOMA", cardLabel: "Central Scotoma", variants: ["CENTRAL_SCOTOMA"] },
+  { key: "METAMORPHOPSIA", cardLabel: "Metamorphopsia", variants: ["METAMORPHOPSIA"] },
+  { key: "TUNNEL_VISION", cardLabel: "Tunnel Vision", variants: ["TUNNEL_VISION"] },
+  { key: "RD_FLASH", cardLabel: "RD Flash", variants: ["RD_FLASH"] },
+  { key: "CURTAIN", cardLabel: "Curtain", variants: ["CURTAIN"] },
+  { key: "BLOOD_STREAK", cardLabel: "Blood Streak", variants: ["BLOOD_STREAK"] },
 ];
 
-export const ALL_ENTRIES: DiseaseEntry[] = [...DISEASE_ENTRIES, ...FLOATER_ENTRIES];
+/** The floater types, reached from the Floaters entry. */
+export const FLOATER_ENTRIES: DiseaseEntry[] = [
+  { key: "WEISS_RING", cardLabel: "Weiss Ring", variants: ["PVD_WEISS_RING"] },
+  { key: "BLACK_DOT", cardLabel: "Black Dot", variants: ["PVD_DOT"] },
+  { key: "GHOST_WORMS", cardLabel: "Ghost Worms", variants: ["GHOST_FLOATERS"] },
+  { key: "BLACK_FLOATERS", cardLabel: "Black Floaters", variants: ["RETINAL_DETACHMENT"] },
+  { key: "RED_FLOATERS", cardLabel: "Red Floaters", variants: ["RED_FLOATERS"] },
+];
+
+export const ALL_ENTRIES: DiseaseEntry[] = [
+  ...DISEASE_ENTRIES,
+  ...SYMPTOM_ENTRIES,
+  ...FLOATER_ENTRIES,
+];
+
+// ---- Diseases tab ------------------------------------------------------
+
+/**
+ * One step of a disease run. `adds` names only what this step introduces:
+ * everything an earlier step turned on stays on for the rest of the run, so
+ * the accumulated picture is derived rather than repeated at every step.
+ */
+export interface ProgressionStage {
+  /** Seconds into the run at which this stage begins. */
+  at: number;
+  label: string;
+  adds: Disease[];
+  /** Where this stage settles on the 0-1 severity scale. */
+  severity: number;
+  /**
+   * Terminal stage - vision is gone, so nothing is layered on top and the
+   * accumulated symptom list stops being meaningful.
+   */
+  blackout?: boolean;
+}
+
+/**
+ * A disease is a timed run, not a slider: the point is that symptoms stack up
+ * in a particular order, which a single intensity control cannot show.
+ */
+export interface DiseaseProgram {
+  key: string;
+  cardLabel: string;
+  clinicalLabel: string;
+  durationSeconds: number;
+  stages: ProgressionStage[];
+}
+
+export const DISEASE_PROGRAMS: DiseaseProgram[] = [
+  {
+    key: "RP",
+    cardLabel: "RP",
+    clinicalLabel: "Retinitis Pigmentosa",
+    durationSeconds: 30,
+    stages: [
+      { at: 0, label: "Peripheral dimming", adds: ["TUNNEL_VISION"], severity: 0.25 },
+      { at: 8, label: "Ring scotoma tightens", adds: [], severity: 0.5 },
+      { at: 16, label: "Narrow tunnel", adds: [], severity: 0.75 },
+      { at: 24, label: "Pinhole vision", adds: [], severity: 0.95 },
+    ],
+  },
+  {
+    key: "RRD",
+    cardLabel: "RRD",
+    clinicalLabel: "Rhegmatogenous Retinal Detachment",
+    durationSeconds: 30,
+    stages: [
+      { at: 0, label: "Black floaters appear", adds: ["RETINAL_DETACHMENT"], severity: 0.3 },
+      { at: 6, label: "Weiss ring detaches", adds: ["PVD_WEISS_RING"], severity: 0.4 },
+      { at: 12, label: "Floater shower with flashes", adds: ["RD_FLASH"], severity: 0.6 },
+      { at: 19, label: "Curtain advances", adds: ["CURTAIN"], severity: 0.8 },
+      { at: 26, label: "Permanent blindness", adds: [], severity: 1, blackout: true },
+    ],
+  },
+  {
+    key: "CSCR",
+    cardLabel: "CSCR",
+    clinicalLabel: "Central Serous Chorioretinopathy",
+    durationSeconds: 30,
+    stages: [
+      { at: 0, label: "Faint distortion", adds: ["METAMORPHOPSIA"], severity: 0.25 },
+      { at: 10, label: "Central warping", adds: [], severity: 0.55 },
+      { at: 20, label: "Marked metamorphopsia", adds: [], severity: 0.85 },
+    ],
+  },
+  {
+    key: "DR",
+    cardLabel: "DR (DME)",
+    clinicalLabel: "Diabetic Retinopathy / Diabetic Macular Edema",
+    durationSeconds: 30,
+    stages: [
+      { at: 0, label: "Central blurring", adds: ["CENTRAL_BLUR"], severity: 0.3 },
+      { at: 6, label: "Ring PVD forms", adds: ["PVD_WEISS_RING"], severity: 0.4 },
+      { at: 13, label: "Red floaters and blood streaks", adds: ["RED_FLOATERS", "BLOOD_STREAK"], severity: 0.6 },
+      { at: 20, label: "Flashes begin", adds: ["RD_FLASH"], severity: 0.8 },
+      { at: 26, label: "Blackout", adds: [], severity: 1, blackout: true },
+    ],
+  },
+  {
+    key: "CNVM",
+    cardLabel: "CNVM",
+    clinicalLabel: "Choroidal Neovascular Membrane",
+    durationSeconds: 30,
+    stages: [
+      { at: 0, label: "Central blurring", adds: ["CENTRAL_BLUR"], severity: 0.3 },
+      { at: 7, label: "Blur deepens", adds: [], severity: 0.6 },
+      { at: 14, label: "Blur converts to scotoma", adds: ["CENTRAL_SCOTOMA"], severity: 0.5 },
+      { at: 21, label: "Scotoma enlarges", adds: [], severity: 0.8 },
+      { at: 26, label: "Metamorphopsia at scotoma border", adds: ["METAMORPHOPSIA"], severity: 0.6 },
+    ],
+  },
+];
+
+export function findProgram(key: string): DiseaseProgram | undefined {
+  return DISEASE_PROGRAMS.find((program) => program.key === key);
+}
+
+/**
+ * Everything switched on by the time `elapsed` is reached, in the order it
+ * arrived. Returns nothing past a blackout stage: there is no vision left to
+ * layer symptoms onto.
+ */
+export function activeSymptomsAt(program: DiseaseProgram, elapsed: number): Disease[] {
+  const seen: Disease[] = [];
+  for (const stage of program.stages) {
+    if (elapsed < stage.at) break;
+    if (stage.blackout) return [];
+    for (const disease of stage.adds) {
+      if (!seen.includes(disease)) seen.push(disease);
+    }
+  }
+  return seen;
+}
