@@ -160,7 +160,10 @@
                     "METAMORPHOPSIA",
                     "CENTRAL_BLUR",
                     "TUNNEL_VISION",
-                    "RETINAL_DETACHMENT"
+                    "RETINAL_DETACHMENT",
+                    "PVD_WEISS_RING",
+                    "PVD_DOT",
+                    "GHOST_FLOATERS"
                   ]
                 }
               },

@@ -40,15 +40,16 @@ namespace VisionSimulation.Protocol
         public const string Recenter = "RECENTER";
         public const string Reset = "RESET";
 
-        // DiseaseEnum values. This is a four-value enum on the wire while
-        // Unity's VisionDisease has eight members: the floater variants have no
-        // wire counterpart and RETINAL_DETACHMENT has no effect implemented.
-        // Reconciling the two taxonomies is an open team decision and is
-        // deliberately not resolved here, because it changes the shared schema.
+        // DiseaseEnum values, one per VisionDisease member except None.
+        // RETINAL_DETACHMENT drives the BlackFloaters effect: clinically the
+        // presenting symptom is a shower of black floaters.
         public const string DiseaseMetamorphopsia = "METAMORPHOPSIA";
         public const string DiseaseCentralBlur = "CENTRAL_BLUR";
         public const string DiseaseTunnelVision = "TUNNEL_VISION";
         public const string DiseaseRetinalDetachment = "RETINAL_DETACHMENT";
+        public const string DiseasePvdWeissRing = "PVD_WEISS_RING";
+        public const string DiseasePvdDot = "PVD_DOT";
+        public const string DiseaseGhostFloaters = "GHOST_FLOATERS";
 
         public const string ComparisonNormal = "NORMAL";
         public const string ComparisonAffected = "AFFECTED";

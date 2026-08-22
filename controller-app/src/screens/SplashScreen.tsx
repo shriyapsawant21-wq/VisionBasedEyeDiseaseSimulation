@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
-import { hasAcceptedDisclaimer, getStoredRole } from "../onboarding";
+import { hasAcceptedDisclaimer } from "../onboarding";
 import { colors, type } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Splash">;
@@ -14,18 +14,13 @@ export function SplashScreen({ navigation }: Props) {
     let cancelled = false;
 
     async function decideNextScreen() {
-      const [accepted, role, _minDelay] = await Promise.all([
+      const [accepted, _minDelay] = await Promise.all([
         hasAcceptedDisclaimer(),
-        getStoredRole(),
         new Promise((resolve) => setTimeout(resolve, MIN_SPLASH_MS)),
       ]);
       if (cancelled) return;
 
-      if (accepted && role === "DOCTOR_CONTROLLER") {
-        navigation.replace("Dashboard");
-      } else {
-        navigation.replace("Disclaimer");
-      }
+      navigation.replace(accepted ? "Dashboard" : "Disclaimer");
     }
 
     decideNextScreen();
