@@ -35,6 +35,7 @@ namespace VisionSimulation.Protocol
         public const string SetSeverity = "SET_SEVERITY";
         public const string SetComparison = "SET_COMPARISON";
         public const string StartProgression = "START_PROGRESSION";
+        public const string StartDiseaseSimulation = "START_DISEASE_SIMULATION";
         public const string PauseProgression = "PAUSE_PROGRESSION";
         public const string SetScene = "SET_SCENE";
         public const string Recenter = "RECENTER";
@@ -50,6 +51,10 @@ namespace VisionSimulation.Protocol
         public const string DiseasePvdWeissRing = "PVD_WEISS_RING";
         public const string DiseasePvdDot = "PVD_DOT";
         public const string DiseaseGhostFloaters = "GHOST_FLOATERS";
+        public const string DiseaseCentralScotoma = "CENTRAL_SCOTOMA";
+        public const string DiseaseRetinalDetachmentFlash = "RD_FLASH";
+        public const string DiseaseCurtainSign = "CURTAIN_SIGN";
+        public const string DiseaseRedFloaters = "RED_FLOATERS";
 
         public const string ComparisonNormal = "NORMAL";
         public const string ComparisonAffected = "AFFECTED";

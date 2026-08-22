@@ -18,7 +18,7 @@ export function ConnectionLostScreen({ navigation }: Props) {
 
   function handleBack() {
     disconnect();
-    navigation.reset({ index: 0, routes: [{ name: "MainTabs" }] });
+    navigation.reset({ index: 0, routes: [{ name: "Dashboard" }] });
   }
 
   return (

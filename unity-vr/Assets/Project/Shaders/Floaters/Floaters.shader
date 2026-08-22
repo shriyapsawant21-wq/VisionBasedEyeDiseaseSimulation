@@ -8,6 +8,12 @@ Shader "VisionSimulation/Floaters"
         _MovementSpeed("Movement Speed", Range(0.05, 1)) = 0.22
         _GhostOpacity("Ghost Opacity", Range(0, 1)) = 0.42
         _RingOpacity("Ring Opacity", Range(0, 1)) = 0.48
+        _WebTexture("Spider Web Texture", 2D) = "black" {}
+        _OverlayRing("Automated Ring Overlay", Range(0, 1)) = 0
+        _OverlayDots("Automated Dot Overlay", Range(0, 1)) = 0
+        _OverlayRed("Automated Blood Overlay", Range(0, 1)) = 0
+        _CurtainOverlay("Automated Curtain Overlay", Range(0, 1)) = 0
+        _BlackoutOverlay("Automated Blackout Overlay", Range(0, 1)) = 0
     }
     SubShader
     {
@@ -24,6 +30,10 @@ Shader "VisionSimulation/Floaters"
 
             float _EffectEnabled, _Severity, _FloaterType, _MovementSpeed;
             float _GhostOpacity, _RingOpacity;
+            float _OverlayRing, _OverlayDots, _OverlayRed;
+            float _CurtainOverlay, _BlackoutOverlay;
+            TEXTURE2D(_WebTexture);
+            SAMPLER(sampler_WebTexture);
 
             float hash11(float p) { return frac(sin(p * 127.1) * 43758.5453); }
             float2 hash21(float p) { return frac(sin(float2(p * 127.1, p * 311.7)) * 43758.5453); }
@@ -75,7 +85,7 @@ Shader "VisionSimulation/Floaters"
                 float aspect = _ScreenParams.x / _ScreenParams.y;
                 float2 shapeUV = float2((uv.x - 0.5) * aspect + 0.5, uv.y);
                 float time = _Time.y * _MovementSpeed;
-                float darkMask = 0.0, lightMask = 0.0;
+                float darkMask = 0.0, lightMask = 0.0, whiteGlowMask = 0.0, redMask = 0.0;
 
                 if (_FloaterType < 0.5)
                 {
@@ -110,7 +120,7 @@ Shader "VisionSimulation/Floaters"
                     }
                     lightMask *= _GhostOpacity * 0.72;
                 }
-                else
+                else if (_FloaterType < 3.5)
                 {
                     [unroll] for (int i = 0; i < 28; i++)
                     {
@@ -121,11 +131,161 @@ Shader "VisionSimulation/Floaters"
                         darkMask = max(darkMask, softDot(shapeUV, c, radius, 0.002) * visible);
                     }
                 }
+                else if (_FloaterType < 4.5)
+                {
+                    // Slow synchronized flicker: a translucent white glow in the
+                    // top-right and a fine vitreous web in the top-left.
+                    float flickerWave = 0.5 + 0.5 * sin(_Time.y * 3.35);
+                    float flicker = smoothstep(0.12, 0.76, flickerWave);
+
+                    // Jagged lightning bolt from the top-right toward the center.
+                    // Narrow and broad masks glow without an opaque core.
+                    float2 boltStart = float2(0.985, 0.985);
+                    float2 boltEnd = float2(0.48, 0.48);
+                    boltStart.x = (boltStart.x - 0.5) * aspect + 0.5;
+                    boltEnd.x = (boltEnd.x - 0.5) * aspect + 0.5;
+                    float2 boltDirection = normalize(boltEnd - boltStart);
+                    float2 boltNormal = float2(-boltDirection.y, boltDirection.x);
+                    float boltLength = length(boltEnd - boltStart);
+                    float2 boltDelta = shapeUV - boltStart;
+                    float distanceAlongBolt = dot(boltDelta, boltDirection);
+                    float distanceAcrossBolt = dot(boltDelta, boltNormal);
+                    float jaggedCenter = sin(distanceAlongBolt * 29.0 + 0.8) * 0.014
+                                       + sin(distanceAlongBolt * 73.0 - 0.4) * 0.006;
+                    float mainEnds = smoothstep(0.0, 0.035, distanceAlongBolt)
+                                   * (1.0 - smoothstep(boltLength - 0.055, boltLength, distanceAlongBolt));
+                    float mainDistance = abs(distanceAcrossBolt - jaggedCenter);
+
+                    float branchOneAlong = distanceAlongBolt - boltLength * 0.28;
+                    float branchOneCenter = jaggedCenter + branchOneAlong * 1.35
+                                          + sin(branchOneAlong * 59.0) * 0.006;
+                    float branchOneEnds = step(0.0, branchOneAlong)
+                                        * (1.0 - smoothstep(0.13, 0.23, branchOneAlong));
+                    float branchOneDistance = abs(distanceAcrossBolt - branchOneCenter) / 1.68;
+
+                    float branchTwoAlong = distanceAlongBolt - boltLength * 0.48;
+                    float branchTwoCenter = jaggedCenter - branchTwoAlong * 1.55
+                                          + sin(branchTwoAlong * 67.0 + 0.5) * 0.006;
+                    float branchTwoEnds = step(0.0, branchTwoAlong)
+                                        * (1.0 - smoothstep(0.12, 0.22, branchTwoAlong));
+                    float branchTwoDistance = abs(distanceAcrossBolt - branchTwoCenter) / 1.84;
+
+                    float branchThreeAlong = distanceAlongBolt - boltLength * 0.64;
+                    float branchThreeCenter = jaggedCenter + branchThreeAlong * 1.10
+                                            + sin(branchThreeAlong * 71.0 - 0.3) * 0.005;
+                    float branchThreeEnds = step(0.0, branchThreeAlong)
+                                          * (1.0 - smoothstep(0.08, 0.16, branchThreeAlong));
+                    float branchThreeDistance = abs(distanceAcrossBolt - branchThreeCenter) / 1.49;
+
+                    float boltWidth = lerp(0.0045, 0.0075, _Severity);
+                    float narrowBolt = (1.0 - smoothstep(0.0, boltWidth * 1.8, mainDistance)) * mainEnds;
+                    float broadBolt = (1.0 - smoothstep(boltWidth * 0.5, boltWidth * 10.5, mainDistance)) * mainEnds;
+                    narrowBolt = max(narrowBolt,
+                        (1.0 - smoothstep(0.0, boltWidth * 1.35, branchOneDistance)) * branchOneEnds);
+                    narrowBolt = max(narrowBolt,
+                        (1.0 - smoothstep(0.0, boltWidth * 1.25, branchTwoDistance)) * branchTwoEnds);
+                    narrowBolt = max(narrowBolt,
+                        (1.0 - smoothstep(0.0, boltWidth * 1.15, branchThreeDistance)) * branchThreeEnds);
+                    broadBolt = max(broadBolt,
+                        (1.0 - smoothstep(boltWidth * 0.5, boltWidth * 7.5, branchOneDistance)) * branchOneEnds);
+                    broadBolt = max(broadBolt,
+                        (1.0 - smoothstep(boltWidth * 0.5, boltWidth * 7.0, branchTwoDistance)) * branchTwoEnds);
+                    broadBolt = max(broadBolt,
+                        (1.0 - smoothstep(boltWidth * 0.5, boltWidth * 6.5, branchThreeDistance)) * branchThreeEnds);
+                    float glow = saturate(broadBolt * 0.76 + narrowBolt * 0.20);
+
+                    // Use the authored strand geometry as a luminance mask. The
+                    // dark preview checker is discarded, leaving only the silk.
+                    float2 webUV = float2(uv.x / 0.48, (uv.y - 0.52) / 0.48);
+                    float webBounds = step(0.0, webUV.x) * step(webUV.x, 1.0)
+                                    * step(0.0, webUV.y) * step(webUV.y, 1.0);
+                    half3 webSample = SAMPLE_TEXTURE2D(_WebTexture, sampler_WebTexture, saturate(webUV)).rgb;
+                    float webLuminance = dot(webSample, half3(0.2126, 0.7152, 0.0722));
+                    float web = smoothstep(0.085, 0.48, webLuminance) * webBounds;
+
+                    whiteGlowMask = saturate(
+                        (glow * lerp(0.48, 0.76, _Severity)
+                        + web * lerp(0.28, 0.52, _Severity)) * flicker);
+                }
+                else
+                {
+                    // Two softly feathered retinal blood streaks. Their curved
+                    // center lines are procedural so no texture stretches in XR.
+                    float2 first = shapeUV - float2(0.34, 0.60);
+                    float firstCurve = sin(first.y * 18.0 + 0.4) * 0.020 + first.y * 0.16;
+                    float firstBody = 1.0 - smoothstep(0.0030, 0.0105, abs(first.x - firstCurve));
+                    float firstEnds = 1.0 - smoothstep(0.13, 0.21, abs(first.y));
+
+                    float2 second = shapeUV - float2(0.70, 0.42);
+                    float secondCurve = second.y * second.y * 0.55 - second.y * 0.09
+                                      + sin(second.y * 11.0 - 0.8) * 0.008;
+                    float secondBody = 1.0 - smoothstep(0.0028, 0.0095, abs(second.x - secondCurve));
+                    float secondEnds = 1.0 - smoothstep(0.11, 0.19, abs(second.y));
+                    float secondVisibility = smoothstep(0.38, 0.72, _Severity);
+                    redMask = saturate(firstBody * firstEnds + secondBody * secondEnds * secondVisibility);
+                    redMask *= lerp(0.78, 0.98, _Severity);
+                }
+
+                // Automated disease timelines retain earlier symptoms while a
+                // later floater/flash type is active in this single render pass.
+                if (_OverlayRing > 0.001)
+                {
+                    float2 c = driftingPosition(2.3, time);
+                    c.x = (c.x - 0.5) * aspect + 0.5;
+                    float2 delta = shapeUV - c;
+                    float angle = atan2(delta.y, delta.x);
+                    float radius = 0.037;
+                    float amoebaRadius = radius * (1.0 + 0.13 * sin(angle * 3.0 + time * 0.7)
+                        + 0.09 * sin(angle * 5.0 - 1.2) + 0.05 * cos(angle * 2.0 + 0.8));
+                    lightMask = max(lightMask,
+                        (1.0 - smoothstep(0.0015, 0.006, abs(length(delta) - amoebaRadius)))
+                        * _RingOpacity * _OverlayRing);
+                }
+
+                if (_OverlayDots > 0.001)
+                {
+                    [unroll] for (int i = 0; i < 18; i++)
+                    {
+                        float2 c = centralDriftingPosition(i + 30.0, time);
+                        c.x = (c.x - 0.5) * aspect + 0.5;
+                        float radius = lerp(0.0025, 0.007, hash11(i + 19.0));
+                        // Overlay strength controls when the dots appear, not
+                        // their opacity: retained black dots stay fully opaque.
+                        darkMask = max(darkMask, softDot(shapeUV, c, radius, 0.002));
+                    }
+                }
+
+                if (_OverlayRed > 0.001)
+                {
+                    float2 first = shapeUV - float2(0.34, 0.60);
+                    float firstCurve = sin(first.y * 18.0 + 0.4) * 0.020 + first.y * 0.16;
+                    float firstBody = 1.0 - smoothstep(0.0030, 0.0105, abs(first.x - firstCurve));
+                    float firstEnds = 1.0 - smoothstep(0.13, 0.21, abs(first.y));
+                    float2 second = shapeUV - float2(0.70, 0.42);
+                    float secondCurve = second.y * second.y * 0.55 - second.y * 0.09 + sin(second.y * 11.0 - 0.8) * 0.008;
+                    float secondBody = 1.0 - smoothstep(0.0028, 0.0095, abs(second.x - secondCurve));
+                    float secondEnds = 1.0 - smoothstep(0.11, 0.19, abs(second.y));
+                    redMask = max(redMask, saturate(firstBody * firstEnds + secondBody * secondEnds) * _OverlayRed);
+                }
 
                 source.rgb = lerp(source.rgb, half3(0,0,0), saturate(darkMask));
-                source.rgb = lerp(source.rgb, half3(1,1,1), saturate(lightMask));
+                half3 flashColour = half3(1.0h, 0.97h, 0.78h);
+                source.rgb = lerp(source.rgb, flashColour, saturate(lightMask));
+                source.rgb = lerp(source.rgb, half3(1.0h, 1.0h, 1.0h), saturate(whiteGlowMask));
                 float luminance = dot(source.rgb, half3(0.2126, 0.7152, 0.0722));
                 source.rgb = saturate(lerp(luminance.xxx, source.rgb, 1.08) * 1.07);
+                // Vivid blood red (#D11212 in the project's linear colour space).
+                source.rgb = lerp(source.rgb, half3(0.637597h, 0.006049h, 0.006049h), saturate(redMask));
+                if (_CurtainOverlay > 0.001)
+                {
+                    float advancingEdge = lerp(0.015, 1.04, _CurtainOverlay);
+                    float unevenEdge = advancingEdge
+                        + sin(uv.y * 17.0 + 0.7) * 0.018
+                        + sin(uv.y * 31.0 - 1.1) * 0.009;
+                    float curtain = 1.0 - smoothstep(unevenEdge - 0.018, unevenEdge + 0.018, uv.x);
+                    source.rgb = lerp(source.rgb, half3(0, 0, 0), curtain);
+                }
+                source.rgb = lerp(source.rgb, half3(0, 0, 0), _BlackoutOverlay);
                 return source;
             }
             ENDHLSL

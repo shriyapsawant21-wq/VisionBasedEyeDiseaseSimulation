@@ -15,22 +15,35 @@ namespace VisionSimulation.UI
             if (effectManager == null || Keyboard.current == null)
                 return;
 
+            // Automated 30-second disease simulations for quick Play Mode testing.
             if (Keyboard.current.digit1Key.wasPressedThisFrame)
-                effectManager.SetDisease(VisionDisease.None);
+                effectManager.StartDiseaseSimulation("RP", 30f);
             if (Keyboard.current.digit2Key.wasPressedThisFrame)
-                effectManager.SetDisease(VisionDisease.Metamorphopsia);
+                effectManager.StartDiseaseSimulation("RRD", 30f);
             if (Keyboard.current.digit3Key.wasPressedThisFrame)
-                effectManager.SetDisease(VisionDisease.CentralBlur);
+                effectManager.StartDiseaseSimulation("CSCR", 30f);
             if (Keyboard.current.digit4Key.wasPressedThisFrame)
-                effectManager.SetDisease(VisionDisease.TunnelVision);
+                effectManager.StartDiseaseSimulation("DR_DME", 30f);
             if (Keyboard.current.digit5Key.wasPressedThisFrame)
-                effectManager.SetDisease(VisionDisease.PosteriorVitreousDetachmentRing);
+                effectManager.StartDiseaseSimulation("CNVM", 30f);
+            if (Keyboard.current.digit0Key.wasPressedThisFrame)
+                effectManager.ResetSimulation();
+
+            // Remaining individual-effect shortcuts are kept for manual checks.
             if (Keyboard.current.digit6Key.wasPressedThisFrame)
                 effectManager.SetDisease(VisionDisease.PosteriorVitreousDetachmentDot);
             if (Keyboard.current.digit7Key.wasPressedThisFrame)
                 effectManager.SetDisease(VisionDisease.GhostFloaters);
             if (Keyboard.current.digit8Key.wasPressedThisFrame)
                 effectManager.SetDisease(VisionDisease.BlackFloaters);
+            if (Keyboard.current.sKey.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.CentralScotoma);
+            if (Keyboard.current.fKey.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.RetinalDetachmentFlash);
+            if (Keyboard.current.cKey.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.CurtainSign);
+            if (Keyboard.current.bKey.wasPressedThisFrame)
+                effectManager.SetDisease(VisionDisease.RedFloaters);
 
             if (Keyboard.current.upArrowKey.wasPressedThisFrame)
                 effectManager.SetSeverity(effectManager.Severity + severityStep);

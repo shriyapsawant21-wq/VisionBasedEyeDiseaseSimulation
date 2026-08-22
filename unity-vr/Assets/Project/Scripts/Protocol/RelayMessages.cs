@@ -190,6 +190,19 @@ namespace VisionSimulation.Protocol
     }
 
     [Serializable]
+    public sealed class StartDiseaseSimulationPayload
+    {
+        public string disease;
+        public float durationSeconds;
+    }
+
+    [Serializable]
+    public sealed class StartDiseaseSimulationMessage : RelayEnvelope
+    {
+        public StartDiseaseSimulationPayload payload;
+    }
+
+    [Serializable]
     public sealed class SetScenePayload
     {
         public string scene;
