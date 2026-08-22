@@ -1,0 +1,32 @@
+# Unity generated/cache directories
+unity-vr/Library/
+unity-vr/Temp/
+unity-vr/Logs/
+unity-vr/UserSettings/
+unity-vr/obj/
+unity-vr/Build/
+unity-vr/Builds/
+unity-vr/MemoryCaptures/
+
+# Visual Studio
+unity-vr/*.csproj
+unity-vr/*.sln
+unity-vr/*.slnx
+unity-vr/.vscode/
+
+# Known bloat
+unity-vr/Assets/TerrainDemoScene_URP/
+unity-vr/Assets/Road sign - Big pack/
+unity-vr/Assets/_Recovery/
+
+# Node
+node_modules/
+**/node_modules/
+relay/dist/
+relay/.discovery-private-key.pem
+controller-app/.expo/
+
+# Misc
+*.log
+# Unity temporary build artifacts
+unity-vr/.utmp/

@@ -1,0 +1,34 @@
+# VisionBridge relay -- dev deployment.
+# App name is set at launch time; keep this file in sync with `fly apps list`.
+app = "visionbridge-relay-dev"
+primary_region = "sin"   # Singapore: closest Fly region to India for demo latency
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8787"
+
+[http_service]
+  internal_port = 8787
+  force_https = true          # clients must use wss://, never ws://
+  auto_start_machines = true
+
+  # IMPORTANT: rooms live in process memory (see src/rooms.ts).
+  # Never scale past one machine -- a second instance would put the
+  # simulation and controller in different processes and pairing would
+  # silently fail. Never let the machine auto-stop either: stopping it
+  # drops every live session.
+  auto_stop_machines = "off"
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/health"
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "10s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
