@@ -10,12 +10,18 @@ import { DISEASE_PROGRAMS } from "../diseaseInfo";
 import { OptionsButton } from "../components/OptionsButton";
 import { SidePanel } from "../components/SidePanel";
 import { DiseaseCard } from "../components/DiseaseCard";
+import type { Scene } from "../../../relay/src/protocol";
 import { colors, spacing, type } from "../theme";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabsParamList, "Disease">,
   NativeStackScreenProps<RootStackParamList>
 >;
+
+const SCENES: Array<{ value: Scene; label: string }> = [
+  { value: "GARDEN", label: "Garden" },
+  { value: "HOSPITAL", label: "Hospital" },
+];
 
 function statusLabel(status: string, sessionId: string | null): string {
   switch (status) {
@@ -36,10 +42,15 @@ function statusLabel(status: string, sessionId: string | null): string {
  * auto-play simulation, not a slider-based control.
  */
 export function DashboardScreen({ navigation }: Props) {
-  const { status, sessionId, lastError, disconnect } = useRelayConnector();
+  const { status, sessionId, lastError, controllerState, setScene, recenter, disconnect } = useRelayConnector();
   const [panelOpen, setPanelOpen] = useState(false);
 
   const paired = status === "paired";
+  // Unity is authoritative on which scene is actually loaded (see
+  // RelayCommandBridge.SendCurrentState) - this renders STATE_UPDATED
+  // directly rather than tracking an optimistic local choice, same as Vision
+  // Mode on the control screen.
+  const activeScene = controllerState?.scene ?? "GARDEN";
 
   return (
     <View style={styles.root}>
@@ -60,7 +71,40 @@ export function DashboardScreen({ navigation }: Props) {
           </Text>
         ) : null}
 
-        <Text style={styles.sectionLabel}>Disease</Text>
+        <Text style={styles.sectionLabel}>Background</Text>
+        <View style={styles.segmented}>
+          {SCENES.map((scene) => {
+            const active = scene.value === activeScene;
+            return (
+              <Pressable
+                key={scene.value}
+                style={[styles.segment, active && styles.segmentActive, !paired && styles.disabled]}
+                disabled={!paired}
+                onPress={() => setScene(scene.value)}
+              >
+                <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{scene.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/*
+          Puts the headset's "forward" back where the wearer is actually
+          looking - for when the phone was inserted crooked, or the
+          background switch above landed with the scene facing the wrong way.
+          Unity has no state to reflect here (recentring isn't a mode, it's a
+          one-shot correction), so this is a plain action button, not a
+          toggle like Background.
+        */}
+        <Pressable
+          style={[styles.adjustButton, !paired && styles.disabled]}
+          disabled={!paired}
+          onPress={recenter}
+        >
+          <Text style={styles.adjustButtonText}>Adjust View</Text>
+        </Pressable>
+
+        <Text style={[styles.sectionLabel, styles.sectionLabelSpaced]}>Disease</Text>
         {DISEASE_PROGRAMS.map((program) => (
           <DiseaseCard
             key={program.key}
@@ -136,9 +180,39 @@ const styles = StyleSheet.create({
   sectionLabelSpaced: {
     marginTop: spacing.md,
   },
-  symptomRow: {
+  segmented: {
     flexDirection: "row",
-    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.teal,
+  },
+  segment: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+  },
+  segmentActive: {
+    backgroundColor: colors.teal,
+  },
+  segmentText: {
+    ...type.button,
+    color: colors.teal,
+  },
+  segmentTextActive: {
+    color: colors.textOnDark,
+  },
+  disabled: {
+    opacity: 0.4,
+  },
+  adjustButton: {
+    marginTop: spacing.sm,
+    paddingVertical: spacing.sm,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.deepRed,
+  },
+  adjustButtonText: {
+    ...type.button,
+    color: colors.deepRed,
   },
   error: {
     marginBottom: spacing.sm,

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { DiseaseEnum, DiseaseProgramEnum } from "../src/protocol";
+import { DiseaseEnum, DiseaseProgramEnum, SceneEnum } from "../src/protocol";
 
 /**
  * unity-vr mirrors protocol.ts by hand, so nothing but a test stops the two
@@ -33,13 +33,16 @@ function wireValuesHandledBy(methodName: string): Set<string> {
   const source = read("Networking/RelayCommandBridge.cs");
   // Anchored on the signature, not the bare name: both methods are called from
   // HandleCommand further up the file, and matching that call site instead
-  // would scan the wrong region and report every value as missing.
-  const signature = `private static bool ${methodName}(`;
-  const start = source.indexOf(signature);
-  expect(start, `${signature} not found in RelayCommandBridge`).toBeGreaterThan(-1);
+  // would scan the wrong region and report every value as missing. "static"
+  // is optional - TryParseScene is an instance method (it reads the
+  // serialized scene-name fields), the disease mappers are static.
+  const signaturePattern = new RegExp(`private (?:static )?bool ${methodName}\\(`);
+  const signatureMatch = source.match(signaturePattern);
+  expect(signatureMatch, `${methodName} not found in RelayCommandBridge`).not.toBeNull();
+  const start = signatureMatch!.index!;
 
-  const rest = source.slice(start + signature.length);
-  const next = rest.indexOf("private static bool ");
+  const rest = source.slice(start + signatureMatch![0].length);
+  const next = rest.search(/private (?:static )?bool /);
   const body = next >= 0 ? rest.slice(0, next) : rest;
 
   const constants = protocolConstants();
@@ -73,6 +76,12 @@ describe("unity-vr mirrors the protocol", () => {
     );
     const missing = DiseaseProgramEnum.options.filter((value) => !cases.has(value));
     expect(missing, "programs Unity has no timeline for").toEqual([]);
+  });
+
+  it("parses every SceneEnum value into a loadable scene name", () => {
+    const handled = wireValuesHandledBy("TryParseScene");
+    const missing = SceneEnum.options.filter((value) => !handled.has(value));
+    expect(missing, "SceneEnum values SET_SCENE would reject as unknown").toEqual([]);
   });
 
   it("keeps PROTOCOL_VERSION in step", () => {

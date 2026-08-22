@@ -420,7 +420,8 @@
                 "scene": {
                   "type": "string",
                   "enum": [
-                    "GARDEN"
+                    "GARDEN",
+                    "HOSPITAL"
                   ]
                 }
               },

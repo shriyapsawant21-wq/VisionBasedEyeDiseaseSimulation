@@ -232,6 +232,9 @@ describe("controller commands reach the simulation", () => {
     connector.setComparison("AFFECTED");
     expect((await sim.waitFor("SET_COMPARISON")).payload.comparison).toBe("AFFECTED");
 
+    connector.setScene("HOSPITAL");
+    expect((await sim.waitFor("SET_SCENE")).payload.scene).toBe("HOSPITAL");
+
     connector.recenter();
     await sim.waitFor("RECENTER");
 

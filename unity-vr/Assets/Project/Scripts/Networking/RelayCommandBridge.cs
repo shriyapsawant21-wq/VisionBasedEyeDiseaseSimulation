@@ -1,7 +1,11 @@
+using Google.XR.Cardboard;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.XR.Management;
 using VisionSimulation.Core;
 using VisionSimulation.DiseaseEffects;
 using VisionSimulation.Protocol;
+using VisionSimulation.VR;
 
 namespace VisionSimulation.Networking
 {
@@ -21,6 +25,12 @@ namespace VisionSimulation.Networking
 
         [Tooltip("Leave empty to bind to RelaySession.Instance at runtime.")]
         [SerializeField] private RelaySession session;
+
+        [Header("Scene names")]
+        [Tooltip("Actual Unity scene name (not the wire value) SET_SCENE(\"GARDEN\") loads.")]
+        [SerializeField] private string gardenSceneName = "Garden";
+        [Tooltip("Actual Unity scene name (not the wire value) SET_SCENE(\"HOSPITAL\") loads.")]
+        [SerializeField] private string hospitalSceneName = "Hospital";
 
         private RelaySession boundSession;
         private VisionEffectManager boundEffectManager;
@@ -57,7 +67,14 @@ namespace VisionSimulation.Networking
                 boundEffectManager = effectManager;
 
                 if (boundEffectManager != null)
+                {
                     boundEffectManager.StateChanged += HandleEffectStateChanged;
+                    // A rebind here means a new scene just loaded and handed
+                    // us its VisionEffectManager - whether that came from a
+                    // SET_SCENE command or the in-headset debug toggle, the
+                    // controller has no other way to learn the scene changed.
+                    SendCurrentState();
+                }
             }
         }
 
@@ -128,11 +145,42 @@ namespace VisionSimulation.Networking
                 disease,
                 effectManager.Severity,
                 effectManager.AffectedVision ? RelayProtocol.ComparisonAffected : RelayProtocol.ComparisonNormal,
-                RelayProtocol.SceneGarden);
+                CurrentSceneWireValue());
+        }
+
+        /// <summary>
+        /// The active Unity scene's wire value. Falls back to GARDEN for any
+        /// scene this bridge doesn't recognise (e.g. an editor test scene)
+        /// rather than sending an unparseable value - STATE_UPDATED's scene
+        /// field is only ever GARDEN or HOSPITAL on the wire.
+        /// </summary>
+        private string CurrentSceneWireValue()
+        {
+            string active = SceneManager.GetActiveScene().name;
+            if (active == hospitalSceneName)
+                return RelayProtocol.SceneHospital;
+            return RelayProtocol.SceneGarden;
         }
 
         private void HandleCommand(string type, string json)
         {
+            // Scene switching and recentring both happen before the
+            // VisionEffectManager gate below: neither touches a disease
+            // effect, so neither should be dropped just because one isn't
+            // bound yet. Scene switching also loads a whole new scene (with
+            // its own effect manager, found again next Update).
+            if (type == RelayProtocol.SetScene)
+            {
+                HandleSetScene(json);
+                return;
+            }
+
+            if (type == RelayProtocol.Recenter)
+            {
+                HandleRecenter();
+                return;
+            }
+
             if (effectManager == null)
                 effectManager = FindAnyObjectByType<VisionEffectManager>();
 
@@ -216,6 +264,80 @@ namespace VisionSimulation.Networking
                     effectManager.ResetSimulation();
                     return;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Swaps the loaded scene. The disease effect itself isn't touched -
+        /// effectManager becomes stale the instant LoadScene runs, and
+        /// Update() re-finds the new scene's copy and echoes STATE_UPDATED
+        /// once it rebinds, so no explicit re-application is needed here.
+        /// </summary>
+        private void HandleSetScene(string json)
+        {
+            var message = JsonUtility.FromJson<SetSceneMessage>(json);
+            string scene = message?.payload?.scene;
+            if (string.IsNullOrEmpty(scene))
+                return;
+
+            if (!TryParseScene(scene, out string target))
+            {
+                Debug.LogWarning($"[RelayCommandBridge] unknown scene '{scene}'.");
+                return;
+            }
+
+            if (SceneManager.GetActiveScene().name == target)
+                return;
+
+            if (!Application.CanStreamedLevelBeLoaded(target))
+            {
+                Debug.LogError($"[RelayCommandBridge] scene '{target}' is not enabled in Build Settings.");
+                return;
+            }
+
+            SceneManager.LoadScene(target);
+        }
+
+        /// <summary>
+        /// Resets "forward" to wherever the wearer is currently facing - the
+        /// adjust button on the controller's Background section, for when the
+        /// headset was put on crooked or the scene otherwise doesn't line up
+        /// with which way the wearer is actually looking.
+        ///
+        /// Both recentre paths run unconditionally rather than picking one:
+        /// on-device only the Cardboard call does anything (no
+        /// DesktopMouseLook there), and in the Editor only the mouse-look
+        /// call does (Cardboard is inert without a real XR session), so
+        /// there's no wrong build to run this against.
+        /// </summary>
+        private void HandleRecenter()
+        {
+            var manager = XRGeneralSettings.Instance?.Manager;
+            if (manager != null && manager.isInitializationComplete)
+                Api.Recenter();
+
+            FindAnyObjectByType<DesktopMouseLook>()?.Recenter();
+        }
+
+        /// <summary>
+        /// SceneEnum value -> the actual Unity scene name to load. An instance
+        /// method, unlike <see cref="TryParseDisease"/>, because the target
+        /// names are the serialized gardenSceneName/hospitalSceneName fields
+        /// above, not fixed constants.
+        /// </summary>
+        private bool TryParseScene(string wireValue, out string sceneName)
+        {
+            switch (wireValue)
+            {
+                case RelayProtocol.SceneGarden:
+                    sceneName = gardenSceneName;
+                    return true;
+                case RelayProtocol.SceneHospital:
+                    sceneName = hospitalSceneName;
+                    return true;
+                default:
+                    sceneName = null;
+                    return false;
             }
         }
 

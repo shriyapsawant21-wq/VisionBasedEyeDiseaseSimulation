@@ -70,6 +70,7 @@ namespace VisionSimulation.Protocol
         public const string ComparisonAffected = "AFFECTED";
 
         public const string SceneGarden = "GARDEN";
+        public const string SceneHospital = "HOSPITAL";
 
         /// <summary>Relay rejects frames larger than this (MAX_MESSAGE_BYTES).</summary>
         public const int MaxMessageBytes = 8 * 1024;

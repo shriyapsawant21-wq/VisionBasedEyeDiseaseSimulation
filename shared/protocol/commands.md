@@ -148,7 +148,7 @@ payload — it holds no simulation state.
 | `START_PROGRESSION` | `{ "durationSeconds": >0 and <=600 }` | Ramp severity of the current `SET_DISEASE` effect over this many seconds. |
 | `START_DISEASE_SIMULATION` | `{ "program": DiseaseProgramEnum, "durationSeconds": >0 and <=600 }` | Play a scripted multi-symptom program from `t=0`. Re-sending restarts it. |
 | `PAUSE_PROGRESSION` | `{ "paused": bool }` | Halt an in-flight run in place, or resume it. |
-| `SET_SCENE` | `{ "scene": "GARDEN" }` | Currently only one scene exists. |
+| `SET_SCENE` | `{ "scene": "GARDEN" or "HOSPITAL" }` | Switches the background environment scene. Independent of the disease/symptom effect, which carries over across the switch. |
 | `RECENTER` | `{}` | Reset head-tracking forward direction. |
 | `RESET` | `{}` | Return to normal vision, severity 0. |
 | `END_SESSION` | `{}` | Ends the session; the relay closes both sockets with code `1000`. |

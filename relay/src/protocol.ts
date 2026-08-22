@@ -49,7 +49,7 @@ export const DiseaseProgramEnum = z.enum([
 
 export const ComparisonEnum = z.enum(["NORMAL", "AFFECTED"]);
 
-export const SceneEnum = z.enum(["GARDEN"]);
+export const SceneEnum = z.enum(["GARDEN", "HOSPITAL"]);
 
 const base = {
   v: z.literal(PROTOCOL_VERSION),
@@ -240,6 +240,7 @@ export const ClientMessageSchema = z.discriminatedUnion("type", [
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
 export type Disease = z.infer<typeof DiseaseEnum>;
 export type DiseaseProgram = z.infer<typeof DiseaseProgramEnum>;
+export type Scene = z.infer<typeof SceneEnum>;
 export type Comparison = z.infer<typeof ComparisonEnum>;
 
 /** Commands only a CONTROLLER is allowed to originate. */

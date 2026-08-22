@@ -3,6 +3,7 @@ import {
   type Disease,
   type DiseaseProgram,
   type Comparison,
+  type Scene,
 } from "../../relay/src/protocol";
 
 // Uses the ambient WebSocket global (React Native and browsers both provide
@@ -12,7 +13,7 @@ export interface ControllerState {
   disease: Disease;
   severity: number;
   comparison: Comparison;
-  scene: "GARDEN";
+  scene: Scene;
 }
 
 export interface ConnectorEvents {
@@ -76,6 +77,10 @@ export class RelayConnector {
 
   setComparison(comparison: Comparison): void {
     this.send("SET_COMPARISON", { comparison });
+  }
+
+  setScene(scene: Scene): void {
+    this.send("SET_SCENE", { scene });
   }
 
   startProgression(durationSeconds: number): void {

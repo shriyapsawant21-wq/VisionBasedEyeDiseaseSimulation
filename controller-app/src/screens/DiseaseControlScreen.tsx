@@ -18,7 +18,9 @@ const SEVERITY_PRESETS = { Mild: 0.25, Moderate: 0.55, Severe: 0.85 };
  * Dashboard list, which also pushes SET_DISEASE so the headset is already
  * on this condition by the time the screen opens. Controls are disabled
  * until paired - the relay rejects them anyway, this just avoids dead taps.
- * Scene switching is intentionally omitted: SceneEnum only has "GARDEN".
+ * Scene switching lives on the Dashboard's Background section instead of
+ * here - it's a property of the environment, not of the condition being
+ * simulated, so it stays in effect across whatever disease is selected.
  */
 export function DiseaseControlScreen({ route, navigation }: Props) {
   const { status, controllerState, lastError, setDisease, setSeverity, setComparison, endSession, disconnect } =
