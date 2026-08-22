@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import type { CompositeScreenProps } from "@react-navigation/native";
+import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
+import type { MainTabsParamList } from "../navigation/MainTabs";
 import { useRelayConnector } from "../useRelayConnector";
 import { DISEASE_ENTRIES, type DiseaseEntry } from "../diseaseInfo";
 import { OptionsButton } from "../components/OptionsButton";
@@ -9,7 +12,10 @@ import { SidePanel } from "../components/SidePanel";
 import { DiseaseCard } from "../components/DiseaseCard";
 import { colors, spacing, type } from "../theme";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Dashboard">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabsParamList, "Disease">,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 function statusLabel(status: string, sessionId: string | null): string {
   switch (status) {
@@ -69,12 +75,6 @@ export function DashboardScreen({ navigation }: Props) {
           <DiseaseCard key={entry.key} label={entry.cardLabel} onPress={() => handleSelect(entry)} />
         ))}
 
-        <Text style={[styles.sectionLabel, styles.sectionLabelSpaced]}>Symptoms</Text>
-        <View style={styles.symptomRow}>
-          <DiseaseCard compact label="Floaters" onPress={() => navigation.navigate("FloaterList")} />
-          {/* no effect behind flashes yet - present but inert */}
-          <DiseaseCard compact disabled label="Flashes" onPress={() => {}} />
-        </View>
       </ScrollView>
 
       <SidePanel visible={panelOpen} onClose={() => setPanelOpen(false)}>
@@ -139,13 +139,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textTransform: "uppercase",
     marginBottom: spacing.sm,
-  },
-  sectionLabelSpaced: {
-    marginTop: spacing.md,
-  },
-  symptomRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
   },
   error: {
     marginBottom: spacing.sm,
