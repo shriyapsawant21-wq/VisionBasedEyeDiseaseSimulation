@@ -2,6 +2,12 @@ using UnityEngine;
 
 namespace VisionSimulation.DiseaseEffects
 {
+    public enum TunnelEffectMode
+    {
+        TunnelVision = 0,
+        CurtainSign = 1
+    }
+
     public sealed class TunnelVisionEffect : MonoBehaviour, IVisionEffect
     {
         [SerializeField] private Material tunnelVisionMaterial;
@@ -19,9 +25,17 @@ namespace VisionSimulation.DiseaseEffects
         private static readonly int PeripheralDarknessId = Shader.PropertyToID("_PeripheralDarkness");
         private static readonly int PeripheralSaturationId = Shader.PropertyToID("_PeripheralSaturation");
         private static readonly int CenterOffsetId = Shader.PropertyToID("_CenterOffset");
+        private static readonly int ModeId = Shader.PropertyToID("_TunnelMode");
 
         private bool effectEnabled;
         private float severity;
+        private TunnelEffectMode mode;
+
+        public void SetMode(TunnelEffectMode value)
+        {
+            mode = value;
+            ApplyMaterialProperties();
+        }
 
         public void SetEnabled(bool isEnabled)
         {
@@ -68,6 +82,7 @@ namespace VisionSimulation.DiseaseEffects
             tunnelVisionMaterial.SetFloat(PeripheralDarknessId, effectEnabled ? peripheralDarkness : 0f);
             tunnelVisionMaterial.SetFloat(PeripheralSaturationId, Mathf.Lerp(1f, severePeripheralSaturation, appliedSeverity));
             tunnelVisionMaterial.SetVector(CenterOffsetId, centerOffset);
+            tunnelVisionMaterial.SetFloat(ModeId, (float)mode);
         }
     }
 }

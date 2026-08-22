@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { CircularSlider } from "../components/CircularSlider";
+import Slider from "@react-native-community/slider";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import { useRelayConnector } from "../useRelayConnector";
@@ -29,7 +29,7 @@ export function DiseaseControlScreen({ route, navigation }: Props) {
   const [localSeverity, setLocalSeverity] = useState(controllerState?.severity ?? 0.25);
 
   const info = DISEASE_INFO[activeDisease];
-  // PVD is one card covering two floater variants; everything else has one
+  // Several disease cards expose multiple simulated symptom variants.
   const entry = ALL_ENTRIES.find((e) => e.variants.includes(activeDisease));
   const variants = entry?.variants ?? [activeDisease];
   const inertVariants = entry?.inertVariants ?? [];
@@ -90,7 +90,7 @@ export function DiseaseControlScreen({ route, navigation }: Props) {
               );
             })}
             {inertVariants.map((name) => (
-              <View key={name} style={styles.variantChip}>
+              <View key={name} style={[styles.variantChip, styles.variantChipInert]}>
                 <Text style={styles.variantChipText}>{name}</Text>
               </View>
             ))}
@@ -101,11 +101,16 @@ export function DiseaseControlScreen({ route, navigation }: Props) {
 
         <Text style={styles.sectionLabel}>{info.severityLabel}</Text>
         <View style={styles.section}>
-          <CircularSlider
+          <Text style={styles.severityValue}>{Math.round(localSeverity * 100)}%</Text>
+          <Slider
+            minimumValue={0}
+            maximumValue={1}
             value={localSeverity}
-            onChange={setLocalSeverity}
-            onComplete={setSeverity}
+            onValueChange={setLocalSeverity}
+            onSlidingComplete={setSeverity}
             disabled={!paired}
+            minimumTrackTintColor={colors.coral}
+            thumbTintColor={colors.coral}
           />
           <View style={styles.row}>
             {(Object.keys(SEVERITY_PRESETS) as Array<keyof typeof SEVERITY_PRESETS>).map((preset) => (
@@ -215,6 +220,7 @@ const styles = StyleSheet.create({
   },
   variantRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm,
     marginTop: spacing.md,
   },
@@ -227,6 +233,9 @@ const styles = StyleSheet.create({
   variantChipActive: {
     backgroundColor: colors.deepRed,
     borderColor: colors.deepRed,
+  },
+  variantChipInert: {
+    opacity: 0.45,
   },
   variantChipText: {
     ...type.button,

@@ -90,6 +90,7 @@ Material:
     - _BlurPixels: 0
     - _BumpScale: 1
     - _CentralContrast: 0.685
+    - _CentralMode: 0
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
     - _Cull: 2

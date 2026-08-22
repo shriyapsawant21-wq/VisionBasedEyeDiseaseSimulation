@@ -22,15 +22,29 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _WebTexture:
+        m_Texture: {fileID: 2800000, guid: a31a7e3d483f4a7cb8dbf85b51496f31, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _BlackoutOverlay: 0
+    - _CurtainOverlay: 0
     - _EffectEnabled: 0
+    - _FlashDistance: 0.30264458
+    - _FlashProgress: 0
     - _FloaterType: 0
     - _GhostOpacity: 0.42
     - _MovementSpeed: 0.22
+    - _OverlayDots: 0
+    - _OverlayRed: 0
+    - _OverlayRing: 0
     - _RingOpacity: 0.48
     - _Severity: 0
-    m_Colors: []
+    m_Colors:
+    - _FlashDirection: {r: -0.68527657, g: -0.7282829, b: 0, a: 0}
+    - _FlashOffset: {r: 0.17750037, g: -0.0033327315, b: 0, a: 0}
+    - _FlashOrigin: {r: 0.84, g: 0.82, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

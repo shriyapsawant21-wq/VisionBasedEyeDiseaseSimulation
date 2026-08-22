@@ -9,6 +9,10 @@ namespace VisionSimulation.Core
         PosteriorVitreousDetachmentRing = 4,
         PosteriorVitreousDetachmentDot = 5,
         GhostFloaters = 6,
-        BlackFloaters = 7
+        BlackFloaters = 7,
+        CentralScotoma = 8,
+        RetinalDetachmentFlash = 9,
+        CurtainSign = 10,
+        RedFloaters = 11
     }
 }
