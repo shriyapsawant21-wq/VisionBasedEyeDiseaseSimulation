@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,8 +11,11 @@ namespace VisionSimulation.Networking
     public static class RelayDiscovery
     {
         private const int DiscoveryPort = 8788;
-        private const string Request = "VISIONBRIDGE_DISCOVER_V1";
-        private const string ResponsePrefix = "VISIONBRIDGE_RELAY_V1:";
+        private const string RequestPrefix = "VISIONBRIDGE_DISCOVER_V2:";
+        private const string ResponseName = "VISIONBRIDGE_RELAY_V2";
+        private const string PublicModulus =
+            "sfO+yRGBIX9MSRac17RGoFD+mJIY2Oz9HehbFHx9+ICVCTBYfznlbMtzzPgaH3dOiBE4zJyvVSsTuB169hfHD6Fx7izdOgkfdc+sC60hghfsrhljOgKkg1xoDVRyZ5pi5o8MgHzRUi7fak2JAIpkUcuXZlTOq3eVPF9a0l5+9lLy2b++A3dYeYhtAzfxknpX9akKFcG5Z5L9miELu4zUQv+k1nOIVA+Y3DQllaWCqQlviFoiAvieUi7eUpNjO4883aPaFpBIP1AkvglfTcSbrjnqsMWNj1M9SJC1lBvuT2YEXEa1sze67qcVTnlocw0Yr2GR8Jjkb9opHSHKEakPkw==";
+        private const string PublicExponent = "AQAB";
 
         public static async Task<string> FindAsync(string trustedRelayUrl, int timeoutMilliseconds = 2500)
         {
@@ -19,20 +23,17 @@ namespace VisionSimulation.Networking
                 (trustedUri.Scheme != "ws" && trustedUri.Scheme != "wss"))
                 return null;
 
-            IPAddress[] trustedAddresses;
-            try
+            byte[] nonceBytes = new byte[16];
+            using (RandomNumberGenerator random = RandomNumberGenerator.Create())
             {
-                trustedAddresses = await Dns.GetHostAddressesAsync(trustedUri.Host).ConfigureAwait(false);
+                random.GetBytes(nonceBytes);
             }
-            catch (SocketException)
-            {
-                return null;
-            }
+            string nonce = Convert.ToBase64String(nonceBytes);
 
             using (var udp = new UdpClient())
             {
                 udp.EnableBroadcast = true;
-                byte[] request = Encoding.UTF8.GetBytes(Request);
+                byte[] request = Encoding.UTF8.GetBytes(RequestPrefix + nonce);
                 await udp.SendAsync(request, request.Length, new IPEndPoint(IPAddress.Broadcast, DiscoveryPort))
                     .ConfigureAwait(false);
 
@@ -45,20 +46,51 @@ namespace VisionSimulation.Networking
                         return null;
 
                     UdpReceiveResult result = await receive.ConfigureAwait(false);
-                    if (Array.IndexOf(trustedAddresses, result.RemoteEndPoint.Address) < 0)
-                        continue;
-
                     string response = Encoding.UTF8.GetString(result.Buffer);
-                    if (!response.StartsWith(ResponsePrefix, StringComparison.Ordinal))
+                    string[] parts = response.Split(':');
+                    if (parts.Length != 4 || parts[0] != ResponseName || parts[2] != nonce)
                         continue;
 
-                    string portText = response.Substring(ResponsePrefix.Length);
-                    if (!int.TryParse(portText, out int port) || port < 1 || port > 65535)
+                    if (!int.TryParse(parts[1], out int port) || port < 1 || port > 65535)
                         continue;
 
-                    var builder = new UriBuilder(trustedUri) { Port = port };
+                    if (!VerifySignature(nonce, port, parts[3]))
+                        continue;
+
+                    var builder = new UriBuilder(trustedUri)
+                    {
+                        Host = result.RemoteEndPoint.Address.ToString(),
+                        Port = port
+                    };
                     return builder.Uri.AbsoluteUri.TrimEnd('/');
                 }
+            }
+        }
+
+        private static bool VerifySignature(string nonce, int port, string encodedSignature)
+        {
+            try
+            {
+                var parameters = new RSAParameters
+                {
+                    Modulus = Convert.FromBase64String(PublicModulus),
+                    Exponent = Convert.FromBase64String(PublicExponent)
+                };
+                byte[] payload = Encoding.UTF8.GetBytes($"{nonce}:{port}");
+                byte[] signature = Convert.FromBase64String(encodedSignature);
+                using (RSA rsa = RSA.Create())
+                {
+                    rsa.ImportParameters(parameters);
+                    return rsa.VerifyData(payload, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                }
+            }
+            catch (CryptographicException)
+            {
+                return false;
+            }
+            catch (FormatException)
+            {
+                return false;
             }
         }
     }
