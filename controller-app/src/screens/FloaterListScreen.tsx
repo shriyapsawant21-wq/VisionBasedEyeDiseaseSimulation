@@ -10,7 +10,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "FloaterList">;
 
 /** The floater conditions, reached from the Floaters symptom box. */
 export function FloaterListScreen({ navigation }: Props) {
-  const { status, setDisease } = useRelayConnector();
+  const { status, setDisease, reset } = useRelayConnector();
   const paired = status === "paired";
 
   function handleSelect(entry: DiseaseEntry) {
@@ -22,7 +22,13 @@ export function FloaterListScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
+        <Pressable
+          onPress={() => {
+            reset();
+            navigation.goBack();
+          }}
+          hitSlop={12}
+        >
           <Text style={styles.backLabel}>‹ Back</Text>
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>

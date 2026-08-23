@@ -55,7 +55,7 @@ export function DepartmentSelectScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Text style={styles.appName}>VisionSim VR</Text>
+        <Text style={styles.appName}>ProVision</Text>
         <Text style={styles.subtitle}>Select a Department</Text>
       </View>
 

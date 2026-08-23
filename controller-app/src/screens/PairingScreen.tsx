@@ -29,7 +29,7 @@ export function PairingScreen({ navigation }: Props) {
 
     const payload = decodePairingPayload(raw);
     if (!payload) {
-      setDecodeError("Unrecognized QR code - expected a VisionSim VR pairing code.");
+      setDecodeError("Unrecognized QR code - expected a ProVision pairing code.");
       setScanned(false);
       return;
     }

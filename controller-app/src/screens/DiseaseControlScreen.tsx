@@ -23,7 +23,7 @@ const SEVERITY_PRESETS = { Mild: 0.25, Moderate: 0.55, Severe: 0.85 };
  * simulated, so it stays in effect across whatever disease is selected.
  */
 export function DiseaseControlScreen({ route, navigation }: Props) {
-  const { status, controllerState, lastError, setDisease, setSeverity, setComparison, endSession, disconnect } =
+  const { status, controllerState, lastError, setDisease, setSeverity, setComparison, endSession, disconnect, reset } =
     useRelayConnector();
 
   const [activeDisease, setActiveDisease] = useState<Disease>(route.params.disease);
@@ -57,11 +57,17 @@ export function DiseaseControlScreen({ route, navigation }: Props) {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
+        <Pressable
+          onPress={() => {
+            reset();
+            navigation.goBack();
+          }}
+          hitSlop={12}
+        >
           <Text style={styles.backLabel}>‹ Back</Text>
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {info.shortLabel}
+          {entry?.cardLabel || info.shortLabel}
         </Text>
         <View style={{ width: 48 }} />
       </View>
