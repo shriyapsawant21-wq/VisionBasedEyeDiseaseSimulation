@@ -102,8 +102,8 @@ export const DISEASE_INFO: Record<Disease, DiseaseInfo> = {
 };
 
 /**
- * A card on the dashboard. Most map to a single condition; PVD carries two
- * floater variants behind one card.
+ * A card reached from the Symptoms tab. Most map to a single condition; PVD
+ * carries two floater variants behind one card.
  */
 export interface DiseaseEntry {
   /** Stable key for the card - not a wire value when variants are present. */
@@ -116,18 +116,6 @@ export interface DiseaseEntry {
    */
   inertVariants?: string[];
 }
-
-export const DISEASE_ENTRIES: DiseaseEntry[] = [
-  { key: "CNVM", cardLabel: "CNVM/DME/CME", variants: ["CENTRAL_BLUR"] },
-  { key: "CSCR", cardLabel: "CSCR", variants: ["METAMORPHOPSIA"] },
-  { key: "RP", cardLabel: "RP", variants: ["TUNNEL_VISION"] },
-  {
-    key: "RD",
-    cardLabel: "RD",
-    variants: ["RETINAL_DETACHMENT"],
-    inertVariants: ["Flashes", "Curtains"],
-  },
-];
 
 /**
  * The Symptoms tab: each symptom on its own, driven manually by the severity
@@ -153,11 +141,7 @@ export const FLOATER_ENTRIES: DiseaseEntry[] = [
   { key: "RED_FLOATERS", cardLabel: "Red Floaters", variants: ["RED_FLOATERS"] },
 ];
 
-export const ALL_ENTRIES: DiseaseEntry[] = [
-  ...DISEASE_ENTRIES,
-  ...SYMPTOM_ENTRIES,
-  ...FLOATER_ENTRIES,
-];
+export const ALL_ENTRIES: DiseaseEntry[] = [...SYMPTOM_ENTRIES, ...FLOATER_ENTRIES];
 
 // ---- Diseases tab — disease programs with timed progression ----
 
