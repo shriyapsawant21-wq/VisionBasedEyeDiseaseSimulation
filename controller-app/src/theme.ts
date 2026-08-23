@@ -19,6 +19,7 @@ export const colors = {
   /** A shade down from offWhite - the ground the disease cards sit on. */
   offWhiteDeep: "#EBE6DB",
   white: "#FFFFFF",
+  green: "#4A7C59",
   textOnLight: "#171817",
   textOnDark: "#F6F3EC",
   textMuted: "#6B6862",

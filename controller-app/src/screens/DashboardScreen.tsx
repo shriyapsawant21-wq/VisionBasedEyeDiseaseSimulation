@@ -11,7 +11,7 @@ import { OptionsButton } from "../components/OptionsButton";
 import { SidePanel } from "../components/SidePanel";
 import { DiseaseCard } from "../components/DiseaseCard";
 import type { Scene } from "../../../relay/src/protocol";
-import { colors, spacing, type } from "../theme";
+import { colors, radius, spacing, type } from "../theme";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabsParamList, "Disease">,
@@ -56,7 +56,7 @@ export function DashboardScreen({ navigation }: Props) {
     <View style={styles.root}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.appName}>VisionSim VR</Text>
+          <Text style={styles.appName}>ProVision</Text>
           <Text style={[styles.statusLine, paired && styles.statusLinePaired]}>
             {statusLabel(status, sessionId)}
           </Text>
@@ -184,6 +184,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderWidth: 1,
     borderColor: colors.teal,
+    borderRadius: radius.md,
+    overflow: "hidden",
   },
   segment: {
     flex: 1,
@@ -191,7 +193,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   segmentActive: {
-    backgroundColor: colors.teal,
+    backgroundColor: colors.green,
   },
   segmentText: {
     ...type.button,

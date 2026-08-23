@@ -15,7 +15,7 @@ export function DisclaimerScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       <View style={styles.content}>
-        <Text style={styles.logo}>VisionSim VR</Text>
+        <Text style={styles.logo}>ProVision</Text>
         <Text style={styles.subtitle}>Educational Simulation Only</Text>
 
         <View style={styles.notice}>

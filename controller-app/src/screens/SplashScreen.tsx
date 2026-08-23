@@ -31,7 +31,7 @@ export function SplashScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>VisionSim VR</Text>
+      <Text style={styles.title}>ProVision</Text>
       <Text style={styles.subtitle}>Educational Simulation Only</Text>
     </View>
   );

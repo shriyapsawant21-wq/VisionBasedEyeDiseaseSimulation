@@ -51,7 +51,7 @@ export function SymptomListScreen({ navigation }: Props) {
     <View style={styles.root}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.appName}>VisionSim VR</Text>
+          <Text style={styles.appName}>ProVision</Text>
           <Text style={[styles.statusLine, paired && styles.statusLinePaired]}>
             {statusLabel(status, sessionId)}
           </Text>
